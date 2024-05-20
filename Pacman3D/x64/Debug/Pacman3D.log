@@ -1,0 +1,5 @@
+﻿  main.cpp
+C:\Users\ania0\Documents\GitHub\Pacman3D\main.cpp(100,35): warning C4267: "=": konwersja z "size_t" do "int", możliwa utrata danych
+C:\Users\ania0\Documents\GitHub\Pacman3D\main.cpp(195,22): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+C:\Users\ania0\Documents\GitHub\Pacman3D\main.cpp(196,22): warning C4244: "+=": konwersja z "double" do "float", możliwa utrata danych
+  Pacman3D.vcxproj -> C:\Users\ania0\Documents\GitHub\Pacman3D\x64\Debug\Pacman3D.exe
