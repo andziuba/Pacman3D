@@ -18,7 +18,8 @@ float speed_x = 0.0f;
 float speed_y = 0.0f;
 const float pacmanSpeed = 0.1f;  // Pacman's movement speed
 float moveSpeed = 0.1f; // Prędkość ruchu Pacmana
-float aspectRatio = 1.0f;
+float aspectRatio = 1.0f; // Stosunek szerokości do wysokości okna
+
 
 ShaderProgram* sp;
 
@@ -60,26 +61,14 @@ void error_callback(int error, const char* description) {
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-		if (key == GLFW_KEY_LEFT) {
-			speed_x = -1.0f;
-			speed_y = 0.0f;
-		}
-		if (key == GLFW_KEY_RIGHT) {
-			speed_x = 1.0f;
-			speed_y = 0.0f;
-		}
-		if (key == GLFW_KEY_UP) {
-			speed_x = 0.0f;
-			speed_y = -1.0f;
-		}
-		if (key == GLFW_KEY_DOWN) {
-			speed_x = 0.0f;
-			speed_y = 1.0f;
-		}
+		if (key == GLFW_KEY_LEFT) pacmanPosition.x -= moveSpeed;
+		if (key == GLFW_KEY_RIGHT) pacmanPosition.x += moveSpeed;
+		if (key == GLFW_KEY_UP) pacmanPosition.z -= moveSpeed;
+		if (key == GLFW_KEY_DOWN) pacmanPosition.z += moveSpeed;
 	}
 }
-
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
 	if (height == 0) return;
@@ -233,6 +222,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 	glfwSwapBuffers(window);
 }
+
 
 
 int main(void) {
