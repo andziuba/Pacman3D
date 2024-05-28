@@ -33,9 +33,17 @@ float* pacman_normals;
 float* pacman_texCoords;
 int pacman_vertexCount;
 
+// Duszek
+std::vector<float> ghostVertices, ghostNormals, ghostTexCoords;
+float* ghost_vertices;
+float* ghost_normals;
+float* ghost_texCoords;
+int ghost_vertexCount;
+
 // Tekstury
 GLuint mazeTex;
 GLuint pacmanTex1;
+GLuint ghostTex1;
 
 //swiatlo
 glm::vec4 lightPos1 = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -115,8 +123,19 @@ void initOpenGLProgram(GLFWwindow* window) {
 	pacman_texCoords = pacmanTexCoords.data();
 	pacman_vertexCount = pacmanVertices.size() / 3;
 
+	if (!loadOBJ("resources/INKY.obj", ghostVertices, ghostNormals, ghostTexCoords)) {
+		fprintf(stderr, "Nie udało się wczytać pliku OBJ dla Pacmana.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	ghost_vertices = ghostVertices.data();
+	ghost_normals = ghostNormals.data();
+	ghost_texCoords = ghostTexCoords.data();
+	ghost_vertexCount = ghostVertices.size() / 3;
+
 	mazeTex = readTexture("resources/bricks1.png");
 	pacmanTex1 = readTexture("resources/s_pme_a0_cmp4.png");
+	ghostTex1 = readTexture("resources/purple.png");
 
 	// Ustawienie wartości uniformów dla źródeł światła i koloru odbić
 	glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
@@ -129,6 +148,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
 	delete sp;
 	glDeleteTextures(1, &mazeTex);
 	glDeleteTextures(1, &pacmanTex1);
+	glDeleteTextures(1, &ghostTex1);
 }
 
 void drawObject(float* vertices, float* normals, float* texCoords, int vertexCount, GLuint texture) {
@@ -188,6 +208,9 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
 	drawObject(pacman_vertices, pacman_normals, pacman_texCoords, pacman_vertexCount, pacmanTex1);
+
+	// draw ghost
+	drawObject(ghost_vertices, ghost_normals, ghost_texCoords, ghost_vertexCount, ghostTex1);
 
 	glfwSwapBuffers(window);
 }
