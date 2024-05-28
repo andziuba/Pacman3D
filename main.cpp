@@ -13,9 +13,12 @@
 #include "obj_loader.h"
 #include "lodepng.h"
 
-float speed_x = 0;
-float speed_y = 0;
-float aspectRatio = 1;
+glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 0.0f);  // Pacman's initial position
+float speed_x = 0.0f;
+float speed_y = 0.0f;
+const float pacmanSpeed = 0.1f;  // Pacman's movement speed
+float moveSpeed = 0.1f; // Prędkość ruchu Pacmana
+float aspectRatio = 1.0f;
 
 ShaderProgram* sp;
 
@@ -57,19 +60,26 @@ void error_callback(int error, const char* description) {
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_LEFT) speed_x = -PI / 2;
-		if (key == GLFW_KEY_RIGHT) speed_x = PI / 2;
-		if (key == GLFW_KEY_UP) speed_y = PI / 2;
-		if (key == GLFW_KEY_DOWN) speed_y = -PI / 2;
-	}
-	if (action == GLFW_RELEASE) {
-		if (key == GLFW_KEY_LEFT) speed_x = 0;
-		if (key == GLFW_KEY_RIGHT) speed_x = 0;
-		if (key == GLFW_KEY_UP) speed_y = 0;
-		if (key == GLFW_KEY_DOWN) speed_y = 0;
+	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+		if (key == GLFW_KEY_LEFT) {
+			speed_x = -1.0f;
+			speed_y = 0.0f;
+		}
+		if (key == GLFW_KEY_RIGHT) {
+			speed_x = 1.0f;
+			speed_y = 0.0f;
+		}
+		if (key == GLFW_KEY_UP) {
+			speed_x = 0.0f;
+			speed_y = -1.0f;
+		}
+		if (key == GLFW_KEY_DOWN) {
+			speed_x = 0.0f;
+			speed_y = 1.0f;
+		}
 	}
 }
+
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
 	if (height == 0) return;
@@ -178,7 +188,8 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glm::mat4 V = glm::lookAt(
 		glm::vec3(0, 4.5, 3),
 		glm::vec3(0, 0, 0),
-		glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::vec3(0.0f, 1.0f, 0.0f)
+	);
 
 	glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 50.0f);
 
@@ -199,17 +210,25 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	// Draw maze
 	drawObject(maze_vertices, maze_normals, maze_texCoords, maze_vertexCount, mazeTex);
 
-	// Draw pacman
+	// Update Pacman's position
+	pacmanPosition += glm::vec3(speed_x * pacmanSpeed, 0.0f, speed_y * pacmanSpeed);
+
+	// Draw Pacman
 	float scale_factor = 0.2f;
 
-	M = glm::translate(M, glm::vec3(1.0f, 0.0f, 0.0f)); // Adjust the translation as needed
-	M = glm::scale(M, glm::vec3(scale_factor, scale_factor, scale_factor)); // Zastosowanie skalowania
+	glm::mat4 pacmanM = glm::translate(M, pacmanPosition); // Translate based on Pacman's position
+	pacmanM = glm::scale(pacmanM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
 
-	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pacmanM));
 
 	drawObject(pacman_vertices, pacman_normals, pacman_texCoords, pacman_vertexCount, pacmanTex1);
 
-	// draw ghost
+	// Draw ghost
+	glm::mat4 ghostM = glm::mat4(1.0f);
+	ghostM = glm::rotate(ghostM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
+	ghostM = glm::rotate(ghostM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostM));
+
 	drawObject(ghost_vertices, ghost_normals, ghost_texCoords, ghost_vertexCount, ghostTex1);
 
 	glfwSwapBuffers(window);
@@ -248,8 +267,9 @@ int main(void) {
 	float angle_y = 0;
 	glfwSetTime(0);
 	while (!glfwWindowShouldClose(window)) {
-		angle_x += speed_x * glfwGetTime();
-		angle_y += speed_y * glfwGetTime();
+		float deltaTime = glfwGetTime();
+		angle_x += speed_x * deltaTime;
+		angle_y += speed_y * deltaTime;
 		glfwSetTime(0);
 		drawScene(window, angle_x, angle_y);
 		glfwPollEvents();
