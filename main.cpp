@@ -19,21 +19,28 @@ float aspectRatio = 1;
 
 ShaderProgram* sp;
 
-// labirynt
-std::vector<float> objVertices, objNormals, objTexCoords; 
-float* vertices; 
-float* normals; 
-float* texCoords; 
-int vertexCount;
+// Labirynt
+std::vector<float> mazeVertices, mazeNormals, mazeTexCoords;
+float* maze_vertices;
+float* maze_normals;
+float* maze_texCoords;
+int maze_vertexCount;
 
-// tekstura labiryntu
+// Pacman
+std::vector<float> pacmanVertices, pacmanNormals, pacmanTexCoords;
+float* pacman_vertices;
+float* pacman_normals;
+float* pacman_texCoords;
+int pacman_vertexCount;
+
+// Tekstury
 GLuint mazeTex;
+GLuint pacmanTex1;
 
 // Procedura obsługi błędów
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
 }
-
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (action == GLFW_PRESS) {
@@ -60,16 +67,12 @@ GLuint readTexture(const char* filename) {
 	GLuint tex;
 	glActiveTexture(GL_TEXTURE0);
 
-	// Wczytanie do pamięci komputera
-	std::vector<unsigned char> image;   // Alokuj wektor do wczytania obrazka
-	unsigned width, height;				// Zmienne do których wczytamy wymiary obrazka
-	// Wczytaj obrazek
+	std::vector<unsigned char> image;
+	unsigned width, height;
 	unsigned error = lodepng::decode(image, width, height, filename);
 
-	// Import do pamięci karty graficznej
-	glGenTextures(1, &tex);				// Zainicjuj jeden uchwyt
-	glBindTexture(GL_TEXTURE_2D, tex);	// Uaktywnij uchwyt
-	// Wczytaj obrazek do pamięci KG skojarzonej z uchwytem
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -78,8 +81,6 @@ GLuint readTexture(const char* filename) {
 	return tex;
 }
 
-
-// Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
 	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
@@ -88,120 +89,129 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
-
-	if (!loadOBJ("resources/maze.obj", objVertices, objNormals, objTexCoords)) {
-		fprintf(stderr, "Nie udało się wczytać pliku OBJ.\n");
+	if (!loadOBJ("resources/maze.obj", mazeVertices, mazeNormals, mazeTexCoords)) {
+		fprintf(stderr, "Nie udało się wczytać pliku OBJ dla labiryntu.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	vertices = objVertices.data();
-	normals = objNormals.data();
-	texCoords = objTexCoords.data();
-	vertexCount = objVertices.size() / 3;
+	maze_vertices = mazeVertices.data();
+	maze_normals = mazeNormals.data();
+	maze_texCoords = mazeTexCoords.data();
+	maze_vertexCount = mazeVertices.size() / 3;
 
-	mazeTex = readTexture("resources/dark_blue.png");
+	if (!loadOBJ("resources/pacman.obj", pacmanVertices, pacmanNormals, pacmanTexCoords)) {
+		fprintf(stderr, "Nie udało się wczytać pliku OBJ dla Pacmana.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	pacman_vertices = pacmanVertices.data();
+	pacman_normals = pacmanNormals.data();
+	pacman_texCoords = pacmanTexCoords.data();
+	pacman_vertexCount = pacmanVertices.size() / 3;
+
+	mazeTex = readTexture("resources/bricks1.png");
+	pacmanTex1 = readTexture("resources/s_pme_a0_cmp4.png");
 }
 
-
-// Zwolnienie zasobów zajętych przez program
 void freeOpenGLProgram(GLFWwindow* window) {
 	delete sp;
 	glDeleteTextures(1, &mazeTex);
+	glDeleteTextures(1, &pacmanTex1);
 }
 
+void drawObject(float* vertices, float* normals, float* texCoords, int vertexCount, GLuint texture) {
+	glEnableVertexAttribArray(sp->a("vertex"));
+	glVertexAttribPointer(sp->a("vertex"), 3, GL_FLOAT, false, 0, vertices);
 
+	glEnableVertexAttribArray(sp->a("normal"));
+	glVertexAttribPointer(sp->a("normal"), 3, GL_FLOAT, false, 0, normals);
 
+	glEnableVertexAttribArray(sp->a("texCoord0"));
+	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, texCoords);
 
-// Procedura rysująca zawartość sceny
+	glUniform1i(sp->u("textureMap0"), 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+
+	glDisableVertexAttribArray(sp->a("vertex"));
+	glDisableVertexAttribArray(sp->a("normal"));
+	glDisableVertexAttribArray(sp->a("texCoord0"));
+}
+
 void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 V = glm::lookAt(
-		glm::vec3(0, 0, -2.5),
+		glm::vec3(0, 4.5, 3),
 		glm::vec3(0, 0, 0),
-		glm::vec3(0.0f, 1.0f, 0.0f));  // Wylicz macierz widoku
+		glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 50.0f);  // Wylicz macierz rzutowania
+	glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 50.0f);
 
 	glm::mat4 M = glm::mat4(1.0f);
-	M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));  // Wylicz macierz modelu
-	M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));  // Wylicz macierz modelu
+	M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
+	M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
 
-	sp->use();  // Aktywacja programu cieniującego
-	// Przeslij parametry programu cieniującego do karty graficznej
+	sp->use();
 	glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
 	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
-	glEnableVertexAttribArray(sp->a("vertex"));										// Włącz przesyłanie danych do atrybutu vertex
-	glVertexAttribPointer(sp->a("vertex"), 3, GL_FLOAT, false, 0, vertices);		// Wskaż tablicę z danymi dla atrybutu vertex
+	// Draw maze
+	drawObject(maze_vertices, maze_normals, maze_texCoords, maze_vertexCount, mazeTex);
 
-	glEnableVertexAttribArray(sp->a("normal"));										// Włącz przesyłanie danych do atrybutu normal
-	glVertexAttribPointer(sp->a("normal"), 3, GL_FLOAT, false, 0, normals);			// Wskaż tablicę z danymi dla atrybutu normal
+	// Draw pacman
+	M = glm::translate(M, glm::vec3(1.0f, 0.0f, 0.0f)); // Adjust the translation as needed
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
+	drawObject(pacman_vertices, pacman_normals, pacman_texCoords, pacman_vertexCount, pacmanTex1);
 
-	glEnableVertexAttribArray(sp->a("texCoord0"));									//Włącz przesyłanie danych do atrybutu texCoord0
-	glVertexAttribPointer(sp->a("texCoord0"), 2, GL_FLOAT, false, 0, texCoords);	//Wskaż tablicę z danymi dla atrybutu texCoord0
-
-
-	glUniform1i(sp->u("textureMap0"), 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mazeTex);
-
-	glDrawArrays(GL_TRIANGLES, 0, vertexCount);		// Narysuj obiekt
-
-	glDisableVertexAttribArray(sp->a("vertex"));	// Wyłącz przesyłanie danych do atrybutu vertex
-	
-	glDisableVertexAttribArray(sp->a("normal"));	// Wyłącz przesyłanie danych do atrybutu normal
-	glDisableVertexAttribArray(sp->a("texCoord0")); // Wyłącz przesyłanie danych do atrybutu texCoord0
-
-	glfwSwapBuffers(window);  // Przerzuć tylny bufor na przedni
+	glfwSwapBuffers(window);
 }
 
-
 int main(void) {
-	GLFWwindow* window;  // Wskaźnik na obiekt reprezentujący okno
+	GLFWwindow* window;
 
-	glfwSetErrorCallback(error_callback);  // Zarejestruj procedurę obsługi błędów
+	glfwSetErrorCallback(error_callback);
 
-	if (!glfwInit()) {  // Zainicjuj bibliotekę GLFW
+	if (!glfwInit()) {
 		fprintf(stderr, "Nie można zainicjować GLFW.\n");
 		exit(EXIT_FAILURE);
 	}
 
 	window = glfwCreateWindow(1000, 1000, "Pacman3D", NULL, NULL);
 
-	if (!window) {  // Jeżeli okna nie udało się utworzyć, to zamknij program
+	if (!window) {
 		fprintf(stderr, "Nie można utworzyć okna.\n");
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
 
-	glfwMakeContextCurrent(window);		// Od tego momentu kontekst okna staje się aktywny i polecenia OpenGL będą dotyczyć właśnie jego
-	glfwSwapInterval(1);				// Czekaj na 1 powrót plamki przed pokazaniem ukrytego bufora
+	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);
 
-	if (glewInit() != GLEW_OK) {  // Zainicjuj bibliotekę GLEW
+	if (glewInit() != GLEW_OK) {
 		fprintf(stderr, "Nie można zainicjować GLEW.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	initOpenGLProgram(window);  // Operacje inicjujące
+	initOpenGLProgram(window);
 
-	// Główna pętla
-	float angle_x = 0;  // Aktualny kąt obrotu obiektu
-	float angle_y = 0;  // Aktualny kąt obrotu obiektu
-	glfwSetTime(0);		// Zeruj timer
-	while (!glfwWindowShouldClose(window))   // Tak długo jak okno nie powinno zostać zamknięte
-	{
-		angle_x += speed_x * glfwGetTime();  // Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
-		angle_y += speed_y * glfwGetTime();  // Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
-		glfwSetTime(0);  // Zeruj timer
-		drawScene(window, angle_x, angle_y); // Wykonaj procedurę rysującą
-		glfwPollEvents(); // Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
+	float angle_x = 0;
+	float angle_y = 0;
+	glfwSetTime(0);
+	while (!glfwWindowShouldClose(window)) {
+		angle_x += speed_x * glfwGetTime();
+		angle_y += speed_y * glfwGetTime();
+		glfwSetTime(0);
+		drawScene(window, angle_x, angle_y);
+		glfwPollEvents();
 	}
 
 	freeOpenGLProgram(window);
 
-	glfwDestroyWindow(window); // Usuń kontekst OpenGL i okno
-	glfwTerminate(); // Zwolnij zasoby zajęte przez GLFW
+	glfwDestroyWindow(window);
+	glfwTerminate();
 	exit(EXIT_SUCCESS);
 }
