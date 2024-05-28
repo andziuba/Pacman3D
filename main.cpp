@@ -37,6 +37,12 @@ int pacman_vertexCount;
 GLuint mazeTex;
 GLuint pacmanTex1;
 
+//swiatlo
+glm::vec4 lightPos1 = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+glm::vec4 lightPos2 = glm::vec4(-1.0f, 1.0f, 1.0f, 1.0f);
+glm::vec4 ks = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+
 // Procedura obsługi błędów
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
@@ -111,7 +117,13 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	mazeTex = readTexture("resources/bricks1.png");
 	pacmanTex1 = readTexture("resources/s_pme_a0_cmp4.png");
+
+	// Ustawienie wartości uniformów dla źródeł światła i koloru odbić
+	glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
+	glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
+	glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
 }
+
 
 void freeOpenGLProgram(GLFWwindow* window) {
 	delete sp;
@@ -159,16 +171,27 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
+	// Ustawienie wartości uniformów dla źródeł światła i koloru odbić
+	glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
+	glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
+	glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
+
 	// Draw maze
 	drawObject(maze_vertices, maze_normals, maze_texCoords, maze_vertexCount, mazeTex);
 
 	// Draw pacman
+	float scale_factor = 0.2f;
+
 	M = glm::translate(M, glm::vec3(1.0f, 0.0f, 0.0f)); // Adjust the translation as needed
+	M = glm::scale(M, glm::vec3(scale_factor, scale_factor, scale_factor)); // Zastosowanie skalowania
+
 	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
+
 	drawObject(pacman_vertices, pacman_normals, pacman_texCoords, pacman_vertexCount, pacmanTex1);
 
 	glfwSwapBuffers(window);
 }
+
 
 int main(void) {
 	GLFWwindow* window;
