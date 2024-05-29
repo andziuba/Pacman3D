@@ -14,16 +14,19 @@
 #include "shaderprogram.h"
 #include "model.h"
 
-glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 0.0f);  // Pacman's initial position
-float speed_x = 0.0f;
-float speed_y = 0.0f;
-const float pacmanSpeed = 0.1f;  // Pacman's movement speed
-float moveSpeed = 0.1f; // Prędkość ruchu Pacmana
-float aspectRatio = 1.0f; // Stosunek szerokości do wysokości okna
+
+float cameraSpeed_x = 0.0f;
+float cameraSpeed_y = 0.0f;
+float aspectRatio = 1.0f;  // Stosunek szerokości do wysokości okna
+
+glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 0.0f);  // Początkowa pozycja Pacmana
+float pacmanSpeed = 0.1f;  // Prędkość ruchu Pacmana
+float pacmanSpeed_x = 0.0f;
+float pacmanSpeed_y = 0.0f;
 
 ShaderProgram* sp;
 
-// Models
+// Modele
 Model* mazeModel;
 Model* pacmanModel;
 Model* ghostModel;
@@ -39,14 +42,52 @@ void error_callback(int error, const char* description) {
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	// Ruch kamerą za pomocą strzałek
+	const float cameraSpeed = PI / 2;
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_LEFT) cameraSpeed_x = -cameraSpeed;
+		if (key == GLFW_KEY_RIGHT) cameraSpeed_x = cameraSpeed;
+		if (key == GLFW_KEY_UP) cameraSpeed_y = cameraSpeed;
+		if (key == GLFW_KEY_DOWN) cameraSpeed_y = -cameraSpeed;
+	}
+	if (action == GLFW_RELEASE) {
+		if (key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) cameraSpeed_x = 0;
+		if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) cameraSpeed_y = 0;
+	}
 
-	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-		if (key == GLFW_KEY_LEFT) pacmanPosition.x -= moveSpeed;
-		if (key == GLFW_KEY_RIGHT) pacmanPosition.x += moveSpeed;
-		if (key == GLFW_KEY_UP) pacmanPosition.z -= moveSpeed;
-		if (key == GLFW_KEY_DOWN) pacmanPosition.z += moveSpeed;
+	// Sterowanie Pacmanem za pomocą klawiszy WASD
+	const float pacmanSpeed = 0.1f;
+	switch (key) {
+	case GLFW_KEY_W:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT)
+			pacmanSpeed_y = pacmanSpeed;
+		else
+			pacmanSpeed_y = 0.0f;
+		break;
+	case GLFW_KEY_S:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT)
+			pacmanSpeed_y = -pacmanSpeed;
+		else
+			pacmanSpeed_y = 0.0f;
+		break;
+	case GLFW_KEY_A:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT)
+			pacmanSpeed_x = -pacmanSpeed;
+		else
+			pacmanSpeed_x = 0.0f;
+		break;
+	case GLFW_KEY_D:
+		if (action == GLFW_PRESS || action == GLFW_REPEAT)
+			pacmanSpeed_x = pacmanSpeed;
+		else
+			pacmanSpeed_x = 0.0f;
+		break;
+	default:
+		break;
 	}
 }
+
+
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
 	if (height == 0) return;
@@ -107,7 +148,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	mazeModel->draw(sp);
 
 	// Update Pacman's position
-	pacmanPosition += glm::vec3(speed_x * pacmanSpeed, 0.0f, speed_y * pacmanSpeed);
+	pacmanPosition += glm::vec3(pacmanSpeed_x * pacmanSpeed, 0.0f, pacmanSpeed_y * pacmanSpeed);
 
 	// Draw Pacman
 	float scale_factor = 0.2f;
@@ -162,8 +203,8 @@ int main(void) {
 	glfwSetTime(0);
 	while (!glfwWindowShouldClose(window)) {
 		float deltaTime = glfwGetTime();
-		angle_x += speed_x * deltaTime;
-		angle_y += speed_y * deltaTime;
+		angle_x += cameraSpeed_x * deltaTime;
+		angle_y += cameraSpeed_y * deltaTime;
 		glfwSetTime(0);
 		drawScene(window, angle_x, angle_y);
 		glfwPollEvents();
