@@ -9,29 +9,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "lodepng.h"
-
 #include "constants.h"
 #include "shaderprogram.h"
 #include "model.h"
-
+#include "game_logic.h"  // Include the Pacman control header
 
 float cameraSpeed_x = 0.0f;
 float cameraSpeed_y = 0.0f;
 float aspectRatio = 1.0f;  // Stosunek szerokości do wysokości okna
-
-glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 0.0f);  // Początkowa pozycja Pacmana
-float pacmanSpeed = 0.1f;  // Prędkość ruchu Pacmana
-float pacmanSpeed_x = 0.0f;
-float pacmanSpeed_y = 0.0f;
 
 ShaderProgram* sp;
 
 // Modele
 Model* mazeModel;
 Model* pacmanModel;
-Model* ghostModel;
+Model* ghostModelPurple;
+Model* ghostModelBlue;
+Model* ghostModelRed;
+Model* ghostModelOrange;
 
-//swiatlo
+// światło
 glm::vec4 lightPos1 = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec4 lightPos2 = glm::vec4(-1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec4 ks = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -55,36 +52,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) cameraSpeed_y = 0;
 	}
 
-	// Sterowanie Pacmanem za pomocą klawiszy WASD
-	const float pacmanSpeed = 0.1f;
-	switch (key) {
-	case GLFW_KEY_W:
-		if (action == GLFW_PRESS || action == GLFW_REPEAT)
-			pacmanSpeed_y = pacmanSpeed;
-		else
-			pacmanSpeed_y = 0.0f;
-		break;
-	case GLFW_KEY_S:
-		if (action == GLFW_PRESS || action == GLFW_REPEAT)
-			pacmanSpeed_y = -pacmanSpeed;
-		else
-			pacmanSpeed_y = 0.0f;
-		break;
-	case GLFW_KEY_A:
-		if (action == GLFW_PRESS || action == GLFW_REPEAT)
-			pacmanSpeed_x = -pacmanSpeed;
-		else
-			pacmanSpeed_x = 0.0f;
-		break;
-	case GLFW_KEY_D:
-		if (action == GLFW_PRESS || action == GLFW_REPEAT)
-			pacmanSpeed_x = pacmanSpeed;
-		else
-			pacmanSpeed_x = 0.0f;
-		break;
-	default:
-		break;
-	}
+	// Pac-Man control logic
+	handlePacmanControl(key, action);
 }
 
 
@@ -105,7 +74,10 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	mazeModel = new Model("resources/maze.obj", "resources/bricks1.png");
 	pacmanModel = new Model("resources/pacman.obj", "resources/s_pme_a0_cmp4.png");
-	ghostModel = new Model("resources/INKY.obj", "resources/purple.png");
+	ghostModelPurple = new Model("resources/INKY.obj", "resources/purple.png");
+	ghostModelBlue = new Model("resources/INKY.obj", "resources/blue.png");
+	ghostModelRed = new Model("resources/INKY.obj", "resources/red.png");
+	ghostModelOrange = new Model("resources/INKY.obj", "resources/orange.png");
 
 	glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
 	glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
@@ -116,7 +88,10 @@ void freeOpenGLProgram(GLFWwindow* window) {
 	delete sp;
 	delete mazeModel;
 	delete pacmanModel;
-	delete ghostModel;
+	delete ghostModelPurple;
+	delete ghostModelBlue;
+	delete ghostModelRed;
+	delete ghostModelOrange;
 }
 
 void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
@@ -158,14 +133,38 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pacmanM));
 	pacmanModel->draw(sp);
 
-	// Draw ghost
-	glm::mat4 ghostM = glm::mat4(1.0f);
-	ghostM = glm::rotate(ghostM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-	ghostM = glm::rotate(ghostM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
-	ghostM = glm::scale(ghostM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
+	// Draw ghosts
+	glm::mat4 ghostPurpleM = glm::mat4(1.0f);
+	ghostPurpleM = glm::rotate(ghostPurpleM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
+	ghostPurpleM = glm::rotate(ghostPurpleM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
+	ghostPurpleM = glm::scale(ghostPurpleM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
 
-	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostM));
-	ghostModel->draw(sp);
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostPurpleM));
+	ghostModelPurple->draw(sp);
+
+	glm::mat4 ghostOrangeM = glm::mat4(1.0f);
+	ghostOrangeM = glm::rotate(ghostOrangeM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
+	ghostOrangeM = glm::rotate(ghostOrangeM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
+	ghostOrangeM = glm::scale(ghostOrangeM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
+
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostOrangeM));
+	ghostModelOrange->draw(sp);
+
+	glm::mat4 ghostBlueM = glm::mat4(1.0f);
+	ghostBlueM = glm::rotate(ghostBlueM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
+	ghostBlueM = glm::rotate(ghostBlueM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
+	ghostBlueM = glm::scale(ghostBlueM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
+
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostBlueM));
+	ghostModelBlue->draw(sp);
+
+	glm::mat4 ghostRedM = glm::mat4(1.0f);
+	ghostRedM = glm::rotate(ghostRedM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
+	ghostRedM = glm::rotate(ghostRedM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
+	ghostRedM = glm::scale(ghostRedM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
+
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostRedM));
+	ghostModelRed->draw(sp);
 
 	glfwSwapBuffers(window);
 }
