@@ -2,38 +2,39 @@
 #include "model.h"
 #include <GLFW/glfw3.h>
 
-glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 0.8f);  // Initial position of Pacman
+glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.2f, 0.8f);  // Initial position of Pacman
 const float pacmanSpeed = 0.5f;
 float pacmanSpeed_x = 0.0f;
 float pacmanSpeed_y = 0.0f;
 
 void handlePacmanControl(int key, int action) {
     switch (key) {
-    case GLFW_KEY_W:
-        if (action == GLFW_PRESS || action == GLFW_REPEAT)
-            pacmanSpeed_y = pacmanSpeed;
-        else if (action == GLFW_RELEASE)
-            pacmanSpeed_y = 0.0f;
-        break;
-    case GLFW_KEY_S:
+    case GLFW_KEY_W: //tyl
         if (action == GLFW_PRESS || action == GLFW_REPEAT)
             pacmanSpeed_y = -pacmanSpeed;
-        else if (action == GLFW_RELEASE)
-            pacmanSpeed_y = 0.0f;
+        //else if (action == GLFW_RELEASE)
+        //    pacmanSpeed_y = 0.0f;
         break;
-    case GLFW_KEY_A:
+    case GLFW_KEY_S: //przod
+        if (action == GLFW_PRESS || action == GLFW_REPEAT)
+            pacmanSpeed_y = pacmanSpeed;
+        //else if (action == GLFW_RELEASE)
+        //    pacmanSpeed_y = 0.0f;
+        break;
+    case GLFW_KEY_A: //lewo
         if (action == GLFW_PRESS || action == GLFW_REPEAT)
             pacmanSpeed_x = -pacmanSpeed;
-        else if (action == GLFW_RELEASE)
-            pacmanSpeed_x = 0.0f;
+        //else if (action == GLFW_RELEASE)
+        //    pacmanSpeed_x = 0.0f;
         break;
-    case GLFW_KEY_D:
+    case GLFW_KEY_D: //prawo
         if (action == GLFW_PRESS || action == GLFW_REPEAT)
             pacmanSpeed_x = pacmanSpeed;
-        else if (action == GLFW_RELEASE)
-            pacmanSpeed_x = 0.0f;
+        //else if (action == GLFW_RELEASE)
+        //    pacmanSpeed_x = 0.0f;
         break;
     }
+
 }
 
 bool checkCollision(const glm::vec3& newPosition, const std::vector<float>& mazeVertices) {
@@ -55,8 +56,13 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
     glm::vec3 newPosition = pacmanPosition;
     newPosition.x += pacmanSpeed_x * deltaTime;
     newPosition.z += pacmanSpeed_y * deltaTime;
+    //printf("kolizje");
 
     if (!checkCollision(newPosition, mazeVertices)) {
         pacmanPosition = newPosition;
+    }
+    else {
+        pacmanSpeed_x = 0.0f;
+        pacmanSpeed_y = 0.0f;
     }
 }

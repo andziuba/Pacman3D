@@ -19,6 +19,8 @@ float cameraSpeed_x = 0.0f;
 float cameraSpeed_y = 0.0f;
 float aspectRatio = 1.0f;  // Stosunek szerokości do wysokości okna
 
+bool gameStarted = false;
+
 ShaderProgram* sp;
 
 // Modele
@@ -52,6 +54,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         if (key == GLFW_KEY_RIGHT) cameraSpeed_x = cameraSpeed;
         if (key == GLFW_KEY_UP) cameraSpeed_y = cameraSpeed;
         if (key == GLFW_KEY_DOWN) cameraSpeed_y = -cameraSpeed;
+        if (key == GLFW_KEY_SPACE) {
+            gameStarted = true;
+            printf("%d", gameStarted);
+        }
     }
     if (action == GLFW_RELEASE) {
         if (key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) cameraSpeed_x = 0;
@@ -60,6 +66,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
     // Pac-Man control logic
     handlePacmanControl(key, action);
+
 }
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
@@ -132,7 +139,11 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     mazeModel->draw(sp);
 
     // Update Pacman's position
-    updatePacmanPosition(deltaTime, mazeVertices);
+    if (gameStarted) {
+        updatePacmanPosition(deltaTime, mazeVertices);
+    }
+
+
 
     // Draw Pacman
     float scale_factor = 0.2f;
