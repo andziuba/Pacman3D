@@ -4,8 +4,9 @@
 #include <glm/glm.hpp>
 #include <vector> // Dodajemy include do std::vector
 
-// Zmienna do przechowywania pozycji Pac-Mana
-extern glm::vec3 pacmanPosition;
+// Zmienne do przechowywania pozycji 
+extern glm::vec3 pacmanPosition, mazePosition, ghostPositionPink, ghostPositionBlue, ghostPositionRed, ghostPositionOrange;
+
 extern float pacmanSpeed_x;
 extern float pacmanSpeed_y;
 

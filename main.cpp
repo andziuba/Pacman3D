@@ -26,14 +26,14 @@ ShaderProgram* sp;
 // Modele
 Model* mazeModel;
 Model* pacmanModel;
-Model* ghostModelPurple;
+Model* ghostModelPink;
 Model* ghostModelBlue;
 Model* ghostModelRed;
 Model* ghostModelOrange;
 
 // światło
-glm::vec4 lightPos1 = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-glm::vec4 lightPos2 = glm::vec4(-1.0f, 1.0f, 1.0f, 1.0f);
+glm::vec4 lightPos1 = glm::vec4(5.0f, 10.0f, 5.0f, 1.0f);  // Top-right position
+glm::vec4 lightPos2 = glm::vec4(-5.0f, 10.0f, 5.0f, 1.0f); // Top-left position
 glm::vec4 ks = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 // Zmienne globalne
@@ -83,17 +83,12 @@ void initOpenGLProgram(GLFWwindow* window) {
 
     sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
-    mazeModel = new Model("resources/maze.obj", "resources/bricks1.png");
-    pacmanModel = new Model("resources/pacman.obj", "resources/s_pme_a0_cmp4.png");
-    ghostModelPurple = new Model("resources/INKY.obj", "resources/purple.png");
-    ghostModelBlue = new Model("resources/INKY.obj", "resources/blue.png");
-    ghostModelRed = new Model("resources/INKY.obj", "resources/red.png");
-    ghostModelOrange = new Model("resources/INKY.obj", "resources/orange.png");
-
-    if (!loadOBJ("resources/maze.obj", mazeVertices, normals, texCoords)) {
-        fprintf(stderr, "Blad: Nie udalo sie wczytac pliku OBJ: resources/maze.obj.\n");
-        exit(EXIT_FAILURE);
-    }
+    mazeModel = new Model("resources/models/labirynt2.obj", "resources/textures/bricks1.png");
+    pacmanModel = new Model("resources/models/pacman2.obj", "resources/textures/yellow.png");
+    ghostModelPink = new Model("resources/models/duszek2.obj", "resources/textures/pink.png");
+    ghostModelBlue = new Model("resources/models/duszek2.obj", "resources/textures/blue.png");
+    ghostModelRed = new Model("resources/models/duszek2.obj", "resources/textures/red.png");
+    ghostModelOrange = new Model("resources/models/duszek2.obj", "resources/textures/orange.png");
 
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
@@ -104,7 +99,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
     delete sp;
     delete mazeModel;
     delete pacmanModel;
-    delete ghostModelPurple;
+    delete ghostModelPink;
     delete ghostModelBlue;
     delete ghostModelRed;
     delete ghostModelOrange;
@@ -114,7 +109,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 V = glm::lookAt(
-        glm::vec3(0, 4.5, 3),
+        glm::vec3(0.0f, 11.0f, 5.0f),
         glm::vec3(0, 0, 0),
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
@@ -136,6 +131,8 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
 
     // Draw maze
+    glm::mat4 mazeM = glm::translate(M, mazePosition);
+    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeM));
     mazeModel->draw(sp);
 
     // Update Pacman's position
@@ -143,48 +140,24 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
         updatePacmanPosition(deltaTime, mazeVertices);
     }
 
-
-
     // Draw Pacman
-    float scale_factor = 0.2f;
     glm::mat4 pacmanM = glm::translate(M, pacmanPosition); // Translate based on Pacman's position
-    pacmanM = glm::scale(pacmanM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
-
+    pacmanM = glm::rotate(pacmanM, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    pacmanM = glm::scale(pacmanM, glm::vec3(0.15f, 0.15f, 0.15f)); // Apply scaling
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pacmanM));
     pacmanModel->draw(sp);
 
-    // Draw ghosts
-    glm::mat4 ghostPurpleM = glm::mat4(1.0f);
-    ghostPurpleM = glm::rotate(ghostPurpleM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-    ghostPurpleM = glm::rotate(ghostPurpleM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
-    ghostPurpleM = glm::scale(ghostPurpleM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
+    // Draw Ghosts
+    glm::vec3 ghostPositions[] = { ghostPositionPink, ghostPositionBlue, ghostPositionRed, ghostPositionOrange };
+    Model* ghostModels[] = { ghostModelPink, ghostModelBlue, ghostModelRed, ghostModelOrange };
 
-    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostPurpleM));
-    ghostModelPurple->draw(sp);
-
-    glm::mat4 ghostOrangeM = glm::mat4(1.0f);
-    ghostOrangeM = glm::rotate(ghostOrangeM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-    ghostOrangeM = glm::rotate(ghostOrangeM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
-    ghostOrangeM = glm::scale(ghostOrangeM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
-
-    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostOrangeM));
-    ghostModelOrange->draw(sp);
-
-    glm::mat4 ghostBlueM = glm::mat4(1.0f);
-    ghostBlueM = glm::rotate(ghostBlueM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-    ghostBlueM = glm::rotate(ghostBlueM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
-    ghostBlueM = glm::scale(ghostBlueM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
-
-    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostBlueM));
-    ghostModelBlue->draw(sp);
-
-    glm::mat4 ghostRedM = glm::mat4(1.0f);
-    ghostRedM = glm::rotate(ghostRedM, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-    ghostRedM = glm::rotate(ghostRedM, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
-    ghostRedM = glm::scale(ghostRedM, glm::vec3(scale_factor, scale_factor, scale_factor)); // Apply scaling
-
-    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostRedM));
-    ghostModelRed->draw(sp);
+    for (int i = 0; i < 4; i++) {
+        glm::mat4 ghostM = glm::translate(M, ghostPositions[i]);
+        ghostM = glm::rotate(ghostM, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        ghostM = glm::scale(ghostM, glm::vec3(0.3f, 0.3f, 0.3f)); // Apply scaling
+        glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostM));
+        ghostModels[i]->draw(sp);
+    }
 
     // Wysłanie do GPU świateł
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
@@ -193,6 +166,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
 
     glfwSwapBuffers(window);
 }
+
 
 int main(void) {
     GLFWwindow* window;

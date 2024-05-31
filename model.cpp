@@ -14,7 +14,7 @@ struct Vertex {
 bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<float>& normals, std::vector<float>& texCoords) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "Blad: nie mozna otworzyc pliku: " << filename << std::endl;
+        std::cerr << "Error: Cannot open file: " << filename << std::endl;
         return false;
     }
 
@@ -65,8 +65,18 @@ bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<flo
         }
     }
 
+    // Calculate the bounding box
+    glm::vec3 minVertex(FLT_MAX), maxVertex(-FLT_MAX);
+    for (const auto& vertex : temp_vertices) {
+        minVertex = glm::min(minVertex, vertex);
+        maxVertex = glm::max(maxVertex, vertex);
+    }
+
+    // Calculate the center of the bounding box
+    glm::vec3 center = (minVertex + maxVertex) * 0.5f;
+
     for (const Vertex& vertexIndex : vertexIndices) {
-        glm::vec3 vertex = temp_vertices[vertexIndex.v];
+        glm::vec3 vertex = temp_vertices[vertexIndex.v] - center; // Center the vertex
         vertices.push_back(vertex.x);
         vertices.push_back(vertex.y);
         vertices.push_back(vertex.z);
@@ -91,7 +101,7 @@ bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<flo
 
 Model::Model(const char* objFilename, const char* textureFilename) {
     if (!loadOBJ(objFilename, vertices, normals, texCoords)) {
-        fprintf(stderr, "Blad: Nie udalo sie wczytac pliku OBJ: %s.\n", objFilename);
+        fprintf(stderr, "Error: Failed to load OBJ file: %s.\n", objFilename);
         exit(EXIT_FAILURE);
     }
 
@@ -111,7 +121,7 @@ void Model::loadTexture(const char* filename) {
     unsigned error = lodepng::decode(image, width, height, filename);
 
     if (error != 0) {
-        fprintf(stderr, "Blad: Nie udalo sie zaladowac tekstury: %s: %s\n", filename, lodepng_error_text(error));
+        fprintf(stderr, "Error: Failed to load texture: %s: %s\n", filename, lodepng_error_text(error));
         exit(EXIT_FAILURE);
     }
 
