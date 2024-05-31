@@ -10,8 +10,11 @@ extern glm::vec3 pacmanPosition, mazePosition, ghostPositionPink, ghostPositionB
 extern float pacmanSpeed_x;
 extern float pacmanSpeed_y;
 
+enum Direction { UP, DOWN, LEFT, RIGHT };
+extern Direction lastDirection; // Initial direction
+
 void handlePacmanControl(int key, int action);
-void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices);
 bool checkCollision(const glm::vec3& newPosition, const std::vector<float>& mazeVertices);
+void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices);
 
 #endif // GAME_LOGIC_H

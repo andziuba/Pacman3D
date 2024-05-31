@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector> 
+
 #include "lodepng.h"
 #include "constants.h"
 #include "shaderprogram.h"
@@ -103,6 +104,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
     delete ghostModelBlue;
     delete ghostModelRed;
     delete ghostModelOrange;
+    
 }
 
 void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime) {
@@ -139,19 +141,22 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     if (gameStarted) {
         updatePacmanPosition(deltaTime, mazeVertices);
     }
-    // Calculate rotation angle based on Pacman's movement direction
+    
+    // Calculate rotation angle based on Pacman's last movement direction
     float rotationAngle = 0.0f;
-    if (pacmanSpeed_x > 0) {
-        rotationAngle = 90.0f; // Right
-    }
-    else if (pacmanSpeed_x < 0) {
-        rotationAngle = -90.0f; // Left
-    }
-    else if (pacmanSpeed_y > 0) {
-        rotationAngle = 0.0f; // Up
-    }
-    else if (pacmanSpeed_y < 0) {
-        rotationAngle = 180.0f; // Down
+    switch (lastDirection) {
+    case RIGHT:
+        rotationAngle = 90.0f;
+        break;
+    case LEFT:
+        rotationAngle = -90.0f;
+        break;
+    case UP:
+        rotationAngle = 180.0f;
+        break;
+    case DOWN:
+        rotationAngle = 0.0f;
+        break;
     }
 
     // Draw Pacman

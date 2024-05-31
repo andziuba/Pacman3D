@@ -10,38 +10,40 @@ glm::vec3 ghostPositionBlue = glm::vec3(-0.5f, 0.0f, -0.2f);
 glm::vec3 ghostPositionRed = glm::vec3(0.0f, 0.0f, -1.1f);   
 glm::vec3 ghostPositionOrange = glm::vec3(0.5f, 0.0f, -0.2f);
 
-const float pacmanSpeed = 1.5f;
+const float pacmanSpeed = 2.0f;
 float pacmanSpeed_x = 0.0f;
 float pacmanSpeed_y = 0.0f;
+const float collisionMargin = 0.18f; 
+
+Direction lastDirection = RIGHT; // Initial direction
+
+void stopPacman() {
+    pacmanSpeed_x = 0.0f;
+    pacmanSpeed_y = 0.0f;
+}
 
 void handlePacmanControl(int key, int action) {
-    switch (key) {
-    case GLFW_KEY_W: //tyl
-        if (action == GLFW_PRESS || action == GLFW_REPEAT)
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        stopPacman(); // reset movement before setting new direction
+        switch (key) {
+        case GLFW_KEY_W: // up
             pacmanSpeed_y = -pacmanSpeed;
-        //else if (action == GLFW_RELEASE)
-        //    pacmanSpeed_y = 0.0f;
-        break;
-    case GLFW_KEY_S: //przod
-        if (action == GLFW_PRESS || action == GLFW_REPEAT)
+            lastDirection = UP;
+            break;
+        case GLFW_KEY_S: // down
             pacmanSpeed_y = pacmanSpeed;
-        //else if (action == GLFW_RELEASE)
-        //    pacmanSpeed_y = 0.0f;
-        break;
-    case GLFW_KEY_A: //lewo
-        if (action == GLFW_PRESS || action == GLFW_REPEAT)
+            lastDirection = DOWN;
+            break;
+        case GLFW_KEY_A: // left
             pacmanSpeed_x = -pacmanSpeed;
-        //else if (action == GLFW_RELEASE)
-        //    pacmanSpeed_x = 0.0f;
-        break;
-    case GLFW_KEY_D: //prawo
-        if (action == GLFW_PRESS || action == GLFW_REPEAT)
+            lastDirection = LEFT;
+            break;
+        case GLFW_KEY_D: // right
             pacmanSpeed_x = pacmanSpeed;
-        //else if (action == GLFW_RELEASE)
-        //    pacmanSpeed_x = 0.0f;
-        break;
+            lastDirection = RIGHT;
+            break;
+        }
     }
-
 }
 
 // Check if a point is inside a triangle formed by three vertices
@@ -86,18 +88,18 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
     // Calculate the new position based on the current speed
     glm::vec3 newPosition = pacmanPosition + glm::vec3(pacmanSpeed_x * deltaTime, 0.0f, pacmanSpeed_y * deltaTime);
 
-    // Calculate a point slightly ahead of Pacman's position in the direction of movement
-    glm::vec3 checkPosition = newPosition + glm::normalize(glm::vec3(pacmanSpeed_x, 0.0f, pacmanSpeed_y)) * 0.4f;
+    // Check for collision with Pacman's bounding box
+    glm::vec3 directions[4] = {
+        glm::vec3(collisionMargin, 0.0f, 0.0f),
+        glm::vec3(-collisionMargin, 0.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, collisionMargin),
+        glm::vec3(0.0f, 0.0f, -collisionMargin)
+    };
 
-    // Perform collision detection with the adjusted position
     bool collision = false;
-    for (size_t i = 0; i < mazeVertices.size(); i += 9) {
-        glm::vec3 v0(mazeVertices[i], mazeVertices[i + 1], mazeVertices[i + 2]);
-        glm::vec3 v1(mazeVertices[i + 3], mazeVertices[i + 4], mazeVertices[i + 5]);
-        glm::vec3 v2(mazeVertices[i + 6], mazeVertices[i + 7], mazeVertices[i + 8]);
-
-        float u, v;
-        if (isPointInTriangle(glm::vec2(checkPosition.x, checkPosition.z), glm::vec2(v0.x, v0.z), glm::vec2(v1.x, v1.z), glm::vec2(v2.x, v2.z), u, v)) {
+    for (const auto& direction : directions) {
+        glm::vec3 checkPosition = newPosition + direction;
+        if (checkCollision(checkPosition, mazeVertices)) {
             collision = true;
             break;
         }
@@ -109,7 +111,6 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
     }
     else {
         // If collision detected, stop Pacman
-        pacmanSpeed_x = 0.0f;
-        pacmanSpeed_y = 0.0f;
+        stopPacman();
     }
 }
