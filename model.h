@@ -16,6 +16,9 @@ public:
     void loadTexture(const char* filename);
     void draw(ShaderProgram* sp);
 
+    // Getter for vertices
+    const std::vector<float>& getVertices() const { return vertices; }
+
 private:
     float* verticesArray;
     float* normalsArray;

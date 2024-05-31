@@ -31,15 +31,13 @@ Model* ghostModelBlue;
 Model* ghostModelRed;
 Model* ghostModelOrange;
 
+// Zmienna globalna dla wierzchołków modelu
+std::vector<float> mazeVertices;
+
 // światło
 glm::vec4 lightPos1 = glm::vec4(5.0f, 10.0f, 5.0f, 1.0f);  // Top-right position
 glm::vec4 lightPos2 = glm::vec4(-5.0f, 10.0f, 5.0f, 1.0f); // Top-left position
 glm::vec4 ks = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-// Zmienne globalne
-std::vector<float> mazeVertices;
-std::vector<float> normals; // Dodajemy zmienne normals i texCoords
-std::vector<float> texCoords;
 
 // Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -90,6 +88,8 @@ void initOpenGLProgram(GLFWwindow* window) {
     ghostModelRed = new Model("resources/models/duszek2.obj", "resources/textures/red.png");
     ghostModelOrange = new Model("resources/models/duszek2.obj", "resources/textures/orange.png");
 
+    mazeVertices = mazeModel->getVertices();
+
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
@@ -139,10 +139,24 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     if (gameStarted) {
         updatePacmanPosition(deltaTime, mazeVertices);
     }
+    // Calculate rotation angle based on Pacman's movement direction
+    float rotationAngle = 0.0f;
+    if (pacmanSpeed_x > 0) {
+        rotationAngle = 90.0f; // Right
+    }
+    else if (pacmanSpeed_x < 0) {
+        rotationAngle = -90.0f; // Left
+    }
+    else if (pacmanSpeed_y > 0) {
+        rotationAngle = 0.0f; // Up
+    }
+    else if (pacmanSpeed_y < 0) {
+        rotationAngle = 180.0f; // Down
+    }
 
     // Draw Pacman
     glm::mat4 pacmanM = glm::translate(M, pacmanPosition); // Translate based on Pacman's position
-    pacmanM = glm::rotate(pacmanM, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    pacmanM = glm::rotate(pacmanM, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation
     pacmanM = glm::scale(pacmanM, glm::vec3(0.15f, 0.15f, 0.15f)); // Apply scaling
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pacmanM));
     pacmanModel->draw(sp);
