@@ -15,8 +15,13 @@ extern Direction lastPacmanDirection; // Initial direction
 extern Direction desiredPacmanDirection;
 
 void handlePacmanControl(int key, int action);
-void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices);
+void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices, bool& gameStarted, bool& gameOver);
 void initRandom();
+void resetPacman(bool& gameStarted, bool& gameOver);
+void resetGhosts();
 void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices);
+bool detectCollision(glm::vec3 position1, glm::vec3 position2, float collisionDistance);
+bool checkPacmanGhostCollision();
+
 
 #endif // GAME_LOGIC_H

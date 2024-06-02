@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdlib> // For rand() and srand()
 #include <ctime> // For time()
+#include <glm/glm.hpp> // For glm::vec3
 
 glm::vec3 mazePosition = glm::vec3(0.0f, -0.3f, 0.0f);
 glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 2.3f);  // Initial position of Pacman
@@ -28,6 +29,25 @@ void stopPacman() {
     pacmanSpeed_y = 0.0f;
 }
 
+void resetPacman(bool& gameStarted, bool& gameOver) {
+    gameStarted = false;
+    gameOver = true;
+
+    pacmanPosition = glm::vec3(0.0f, 0.0f, 2.3f);
+
+    stopPacman();
+    resetGhosts();
+
+    lastPacmanDirection = RIGHT;
+}
+
+void resetGhosts() {
+    ghostPositionPink = glm::vec3(0.0f, 0.0f, -0.2f);
+    ghostPositionBlue = glm::vec3(-0.5f, 0.0f, -0.2f);
+    ghostPositionRed = glm::vec3(0.0f, 0.0f, -1.1f);
+    ghostPositionOrange = glm::vec3(0.5f, 0.0f, -0.2f);
+}
+
 void handlePacmanControl(int key, int action) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         switch (key) {
@@ -47,7 +67,6 @@ void handlePacmanControl(int key, int action) {
     }
 }
 
-// Check if a point is inside a triangle formed by three vertices
 bool isPointInTriangle(glm::vec2 p, glm::vec2 a, glm::vec2 b, glm::vec2 c, float& u, float& v) {
     glm::vec2 v0 = b - a;
     glm::vec2 v1 = c - a;
@@ -85,53 +104,20 @@ bool checkCollision(const glm::vec3& position, const std::vector<float>& mazeVer
     return false; // No collision detected
 }
 
-void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices) {
-    if (pacmanPosition.x > 4.5f) {
-        pacmanPosition.x = -4.3f;
-    }
-    else if (pacmanPosition.x < -4.5f) {
-        pacmanPosition.x = 4.3f;
-    }
-    else {
-        glm::vec3 potentialPosition = pacmanPosition;
-        float newSpeed_x = 0.0f;
-        float newSpeed_y = 0.0f;
-
-        // Set potential new speed based on the desired direction
-        switch (desiredPacmanDirection) {
-        case UP:
-            newSpeed_y = -pacmanSpeed;
-            break;
-        case DOWN:
-            newSpeed_y = pacmanSpeed;
-            break;
-        case LEFT:
-            newSpeed_x = -pacmanSpeed;
-            break;
-        case RIGHT:
-            newSpeed_x = pacmanSpeed;
-            break;
+void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices, bool& gameStarted, bool& gameOver) {
+        if (pacmanPosition.x > 4.5f) {
+            pacmanPosition.x = -4.3f;
         }
-
-        // Calculate potential new position
-        potentialPosition += glm::vec3(newSpeed_x * deltaTime, 0.0f, newSpeed_y * deltaTime);
-
-        // Check for collision in the desired direction using detectionDistance
-        glm::vec3 detectionPosition = pacmanPosition + glm::vec3(newSpeed_x * detectionDistance, 0.0f, newSpeed_y * detectionDistance);
-        if (!checkCollision(detectionPosition, mazeVertices)) {
-            // If no collision, update Pacman's position and speed
-            pacmanPosition = potentialPosition;
-            pacmanSpeed_x = newSpeed_x;
-            pacmanSpeed_y = newSpeed_y;
-            lastPacmanDirection = desiredPacmanDirection;
+        else if (pacmanPosition.x < -4.5f) {
+            pacmanPosition.x = 4.3f;
         }
         else {
-            // If there's a collision, try to continue in the last valid direction
-            potentialPosition = pacmanPosition;
-            newSpeed_x = 0.0f;
-            newSpeed_y = 0.0f;
+            glm::vec3 potentialPosition = pacmanPosition;
+            float newSpeed_x = 0.0f;
+            float newSpeed_y = 0.0f;
 
-            switch (lastPacmanDirection) {
+            // Set potential new speed based on the desired direction
+            switch (desiredPacmanDirection) {
             case UP:
                 newSpeed_y = -pacmanSpeed;
                 break;
@@ -146,24 +132,68 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
                 break;
             }
 
-            // Check for collision in the last valid direction using detectionDistance
-            detectionPosition = pacmanPosition + glm::vec3(newSpeed_x * detectionDistance, 0.0f, newSpeed_y * detectionDistance);
-            potentialPosition = pacmanPosition + glm::vec3(newSpeed_x * deltaTime, 0.0f, newSpeed_y * deltaTime);
+            // Calculate potential new position
+            potentialPosition += glm::vec3(newSpeed_x * deltaTime, 0.0f, newSpeed_y * deltaTime);
+
+            // Check for collision in the desired direction using detectionDistance
+            glm::vec3 detectionPosition = pacmanPosition + glm::vec3(newSpeed_x * detectionDistance, 0.0f, newSpeed_y * detectionDistance);
             if (!checkCollision(detectionPosition, mazeVertices)) {
-                // If no collision, update Pacman's position and continue in the last valid direction
-                pacmanPosition = potentialPosition;
-                pacmanSpeed_x = newSpeed_x;
-                pacmanSpeed_y = newSpeed_y;
+                if (checkPacmanGhostCollision()) {
+                    resetPacman(gameStarted, gameOver);
+                }
+                else {
+                    // If no collision, update Pacman's position and speed
+                    pacmanPosition = potentialPosition;
+                    pacmanSpeed_x = newSpeed_x;
+                    pacmanSpeed_y = newSpeed_y;
+                    lastPacmanDirection = desiredPacmanDirection;
+                }
             }
             else {
-                // If there's a collision in the last valid direction as well, stop Pacman
-                stopPacman();
+                // If there's a collision, try to continue in the last valid direction
+                potentialPosition = pacmanPosition;
+                newSpeed_x = 0.0f;
+                newSpeed_y = 0.0f;
+
+                switch (lastPacmanDirection) {
+                case UP:
+                    newSpeed_y = -pacmanSpeed;
+                    break;
+                case DOWN:
+                    newSpeed_y = pacmanSpeed;
+                    break;
+                case LEFT:
+                    newSpeed_x = -pacmanSpeed;
+                    break;
+                case RIGHT:
+                    newSpeed_x = pacmanSpeed;
+                    break;
+                }
+
+                // Check for collision in the last valid direction using detectionDistance
+                detectionPosition = pacmanPosition + glm::vec3(newSpeed_x * detectionDistance, 0.0f, newSpeed_y * detectionDistance);
+                potentialPosition = pacmanPosition + glm::vec3(newSpeed_x * deltaTime, 0.0f, newSpeed_y * deltaTime);
+                if (!checkCollision(detectionPosition, mazeVertices)) {
+                    // If no collision, update Pacman's position and continue in the last valid direction
+                    if (checkPacmanGhostCollision()) {
+                        resetPacman(gameStarted, gameOver);
+                    }
+                    else {
+                        pacmanPosition = potentialPosition;
+                        pacmanSpeed_x = newSpeed_x;
+                        pacmanSpeed_y = newSpeed_y;
+                    }
+                }
+                else {
+                    // If there's a collision in the last valid direction as well, stop Pacman
+                    stopPacman();
+                }
             }
         }
-    }
+
 }
 
-// Initialize random seed
+
 void initRandom() {
     srand(static_cast<unsigned int>(time(nullptr)));
 }
@@ -221,4 +251,25 @@ void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertice
     updateGhostPosition(ghostPositionBlue, currentDirectionBlue, mazeVertices, deltaTime);
     updateGhostPosition(ghostPositionRed, currentDirectionRed, mazeVertices, deltaTime);
     updateGhostPosition(ghostPositionOrange, currentDirectionOrange, mazeVertices, deltaTime);
+}
+
+bool detectCollision(glm::vec3 position1, glm::vec3 position2, float collisionDistance) {
+    float distance = glm::distance(position1, position2);
+    return distance < collisionDistance;
+}
+
+bool checkPacmanGhostCollision() {
+    if (detectCollision(pacmanPosition, ghostPositionPink, detectionDistance)) {
+        return true;
+    }
+    if (detectCollision(pacmanPosition, ghostPositionBlue, detectionDistance)) {
+        return true;
+    }
+    if (detectCollision(pacmanPosition, ghostPositionRed, detectionDistance)) {
+        return true;
+    }
+    if (detectCollision(pacmanPosition, ghostPositionOrange, detectionDistance)) {
+        return true;
+    }
+    return false;
 }

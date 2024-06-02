@@ -23,7 +23,8 @@ float cameraSpeed_x = 0.0f;
 float cameraSpeed_y = 0.0f;
 float aspectRatio = 1.0f;  // Stosunek szerokości do wysokości okna
 
-bool gameStarted = false;
+extern bool gameStarted = false;
+extern bool gameOver = false;
 
 ShaderProgram* sp;
 
@@ -61,9 +62,12 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         if (key == GLFW_KEY_DOWN) cameraSpeed_y = -cameraSpeed;
         if (key == GLFW_KEY_SPACE) {
             gameStarted = true;
-            soundEngine->stopAllSounds();  // Stop background music
-            soundEngine->play2D("resources/audio/pacman_chomp.wav", true);  // Play game music in a loop
+            gameOver = false;
+            //soundEngine->stopAllSounds();  // Stop background music
+           // soundEngine->play2D("resources/audio/pacman_chomp.wav", true);  // Play game music in a loop
         }
+ 
+
     }
     if (action == GLFW_RELEASE) {
         if (key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) cameraSpeed_x = 0;
@@ -154,8 +158,8 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     mazeModel->draw(sp);
 
     // Update Pacman's position
-    if (gameStarted) {
-        updatePacmanPosition(deltaTime, mazeVertices);
+    if (gameStarted && !gameOver) {
+        updatePacmanPosition(deltaTime, mazeVertices, gameStarted, gameOver);
         updateGhostPositions(deltaTime, mazeVertices);
     }
     
