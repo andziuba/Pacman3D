@@ -2,6 +2,8 @@
 #include "model.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cstdlib> // For rand() and srand()
+#include <ctime> // For time()
 
 glm::vec3 mazePosition = glm::vec3(0.0f, -0.3f, 0.0f);
 glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 2.3f);  // Initial position of Pacman
@@ -11,13 +13,15 @@ glm::vec3 ghostPositionRed = glm::vec3(0.0f, 0.0f, -1.1f);
 glm::vec3 ghostPositionOrange = glm::vec3(0.5f, 0.0f, -0.2f);
 
 const float pacmanSpeed = 2.0f;
+const float ghostSpeed = 2.0f;
 float pacmanSpeed_x = 0.0f;
 float pacmanSpeed_y = 0.0f;
-const float collisionMargin = 0.2f;
 float detectionDistance = 0.18f; // Distance to check for collisions
+float ghostDetectionDistance = 0.3f;
 
-Direction lastDirection = RIGHT; // Initial direction
-Direction desiredDirection = RIGHT; // Desired direction
+Direction lastPacmanDirection = RIGHT; // Initial direction
+Direction desiredPacmanDirection = RIGHT; // Desired direction
+Direction ghostDirections[4] = { UP, DOWN, LEFT, RIGHT };
 
 void stopPacman() {
     pacmanSpeed_x = 0.0f;
@@ -28,16 +32,16 @@ void handlePacmanControl(int key, int action) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         switch (key) {
         case GLFW_KEY_W: // up
-            desiredDirection = UP;
+            desiredPacmanDirection = UP;
             break;
         case GLFW_KEY_S: // down
-            desiredDirection = DOWN;
+            desiredPacmanDirection = DOWN;
             break;
         case GLFW_KEY_A: // left
-            desiredDirection = LEFT;
+            desiredPacmanDirection = LEFT;
             break;
         case GLFW_KEY_D: // right
-            desiredDirection = RIGHT;
+            desiredPacmanDirection = RIGHT;
             break;
         }
     }
@@ -94,7 +98,7 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
         float newSpeed_y = 0.0f;
 
         // Set potential new speed based on the desired direction
-        switch (desiredDirection) {
+        switch (desiredPacmanDirection) {
         case UP:
             newSpeed_y = -pacmanSpeed;
             break;
@@ -119,7 +123,7 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
             pacmanPosition = potentialPosition;
             pacmanSpeed_x = newSpeed_x;
             pacmanSpeed_y = newSpeed_y;
-            lastDirection = desiredDirection;
+            lastPacmanDirection = desiredPacmanDirection;
         }
         else {
             // If there's a collision, try to continue in the last valid direction
@@ -127,7 +131,7 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
             newSpeed_x = 0.0f;
             newSpeed_y = 0.0f;
 
-            switch (lastDirection) {
+            switch (lastPacmanDirection) {
             case UP:
                 newSpeed_y = -pacmanSpeed;
                 break;
@@ -157,4 +161,64 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
             }
         }
     }
+}
+
+// Initialize random seed
+void initRandom() {
+    srand(static_cast<unsigned int>(time(nullptr)));
+}
+
+Direction getRandomDirection() {
+    return ghostDirections[rand() % 4];
+}
+
+glm::vec3 getDirectionVector(Direction direction) {
+    switch (direction) {
+    case UP:
+        return glm::vec3(0.0f, 0.0f, -1.0f);
+    case DOWN:
+        return glm::vec3(0.0f, 0.0f, 1.0f);
+    case LEFT:
+        return glm::vec3(-1.0f, 0.0f, 0.0f);
+    case RIGHT:
+        return glm::vec3(1.0f, 0.0f, 0.0f);
+    default:
+        return glm::vec3(0.0f, 0.0f, 0.0f);
+    }
+}
+
+void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, const std::vector<float>& mazeVertices, float deltaTime) {
+    glm::vec3 directionVector = getDirectionVector(currentDirection);
+    glm::vec3 potentialPosition = ghostPosition + directionVector * ghostSpeed * deltaTime;
+
+    // Check for collisions in the desired direction using detectionDistance
+    glm::vec3 detectionPosition = ghostPosition + directionVector * ghostDetectionDistance;
+    if (!checkCollision(detectionPosition, mazeVertices)) {
+        ghostPosition = potentialPosition;
+    }
+    else {
+        // If a collision occurs, choose a new random direction
+        currentDirection = getRandomDirection();
+    }
+
+    // Wrap around the maze
+    if (ghostPosition.x > 4.5f) {
+        ghostPosition.x = -4.3f;
+    }
+    else if (ghostPosition.x < -4.5f) {
+        ghostPosition.x = 4.3f;
+    }
+}
+
+void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices) {
+    // Each ghost has its own direction
+    static Direction currentDirectionPink = getRandomDirection();
+    static Direction currentDirectionBlue = getRandomDirection();
+    static Direction currentDirectionRed = getRandomDirection();
+    static Direction currentDirectionOrange = getRandomDirection();
+
+    updateGhostPosition(ghostPositionPink, currentDirectionPink, mazeVertices, deltaTime);
+    updateGhostPosition(ghostPositionBlue, currentDirectionBlue, mazeVertices, deltaTime);
+    updateGhostPosition(ghostPositionRed, currentDirectionRed, mazeVertices, deltaTime);
+    updateGhostPosition(ghostPositionOrange, currentDirectionOrange, mazeVertices, deltaTime);
 }

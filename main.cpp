@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdlib.h>
 #include <stdio.h>
-#include <vector> 
+#include <vector>
 
 #include "lodepng.h"
 #include "constants.h"
@@ -79,6 +79,7 @@ void initOpenGLProgram(GLFWwindow* window) {
     glEnable(GL_DEPTH_TEST);
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glfwSetKeyCallback(window, keyCallback);
+    initRandom();
 
     sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
@@ -140,11 +141,12 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     // Update Pacman's position
     if (gameStarted) {
         updatePacmanPosition(deltaTime, mazeVertices);
+        updateGhostPositions(deltaTime, mazeVertices);
     }
     
     // Calculate rotation angle based on Pacman's last movement direction
     float rotationAngle = 0.0f;
-    switch (lastDirection) {
+    switch (lastPacmanDirection) {
     case RIGHT:
         rotationAngle = 90.0f;
         break;

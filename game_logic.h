@@ -11,10 +11,12 @@ extern float pacmanSpeed_x;
 extern float pacmanSpeed_y;
 
 enum Direction { UP, DOWN, LEFT, RIGHT };
-extern Direction lastDirection; // Initial direction
+extern Direction lastPacmanDirection; // Initial direction
+extern Direction desiredPacmanDirection;
 
 void handlePacmanControl(int key, int action);
-bool checkCollision(const glm::vec3& newPosition, const std::vector<float>& mazeVertices);
 void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices);
+void initRandom();
+void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices);
 
 #endif // GAME_LOGIC_H
