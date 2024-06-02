@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>
+#include <irrKlang.h>
+using namespace irrklang;
+
 
 #include "lodepng.h"
 #include "constants.h"
@@ -23,6 +26,9 @@ float aspectRatio = 1.0f;  // Stosunek szerokości do wysokości okna
 bool gameStarted = false;
 
 ShaderProgram* sp;
+
+// IrrKlang engine
+ISoundEngine* soundEngine;
 
 // Modele
 Model* mazeModel;
@@ -55,7 +61,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         if (key == GLFW_KEY_DOWN) cameraSpeed_y = -cameraSpeed;
         if (key == GLFW_KEY_SPACE) {
             gameStarted = true;
-            printf("%d", gameStarted);
+            soundEngine->stopAllSounds();  // Stop background music
+            soundEngine->play2D("resources/audio/pacman_chomp.wav", true);  // Play game music in a loop
         }
     }
     if (action == GLFW_RELEASE) {
@@ -95,6 +102,15 @@ void initOpenGLProgram(GLFWwindow* window) {
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
+
+    // Initialize IrrKlang engine
+    soundEngine = createIrrKlangDevice();
+    if (!soundEngine) {
+        fprintf(stderr, "Could not initialize IrrKlang engine.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    soundEngine->play2D("resources/audio/pacman_beginning.wav", true);
 }
 
 void freeOpenGLProgram(GLFWwindow* window) {
@@ -105,7 +121,6 @@ void freeOpenGLProgram(GLFWwindow* window) {
     delete ghostModelBlue;
     delete ghostModelRed;
     delete ghostModelOrange;
-    
 }
 
 void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime) {

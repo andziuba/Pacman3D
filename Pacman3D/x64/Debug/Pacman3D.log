@@ -1,1 +1,3 @@
-﻿  Pacman3D.vcxproj -> C:\Users\ania0\Documents\GitHub\Pacman3D\x64\Debug\Pacman3D.exe
+﻿  main.cpp
+C:\Users\ania0\Documents\GitHub\Pacman3D\main.cpp(240,27): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych
+  Pacman3D.vcxproj -> C:\Users\ania0\Documents\GitHub\Pacman3D\x64\Debug\Pacman3D.exe
