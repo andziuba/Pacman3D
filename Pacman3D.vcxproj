@@ -148,7 +148,6 @@
   <ItemGroup>
     <ClInclude Include="constants.h" />
     <ClInclude Include="game_logic.h" />
-    <ClInclude Include="gltext.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="shaderprogram.h" />

@@ -5,6 +5,14 @@
 #include <cstdlib> // For rand() and srand()
 #include <ctime> // For time()
 #include <glm/glm.hpp> // For glm::vec3
+#include <irrKlang.h>
+using namespace irrklang;
+#include <chrono>
+#include <thread>
+
+
+// IrrKlang engine
+ISoundEngine* soundEngine;
 
 glm::vec3 mazePosition = glm::vec3(0.0f, -0.3f, 0.0f);
 glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 2.3f);  // Initial position of Pacman
@@ -44,6 +52,14 @@ void stopPacman() {
 void resetPacman(bool& gameStarted, bool& gameOver) {
     gameStarted = false;
     gameOver = true;
+
+    soundEngine->stopAllSounds();
+    soundEngine->play2D("resources/audio/pacman_death.wav", false);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    soundEngine->stopAllSounds();
+    soundEngine->play2D("resources/audio/pacman_beginning.wav", true);
 
     pacmanPosition = glm::vec3(0.0f, 0.0f, 2.3f);
 

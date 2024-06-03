@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 #include <vector> // Dodajemy include do std::vector
+#include <irrKlang.h>
+using namespace irrklang;
 
 // Zmienne do przechowywania pozycji 
 extern glm::vec3 pacmanPosition, mazePosition, ghostPositionPink, ghostPositionBlue, ghostPositionRed, ghostPositionOrange;
@@ -13,6 +15,8 @@ extern float pacmanSpeed_y;
 enum Direction { UP, DOWN, LEFT, RIGHT };
 extern Direction lastPacmanDirection; // Initial direction
 extern Direction desiredPacmanDirection;
+
+extern ISoundEngine* soundEngine;
 
 void handlePacmanControl(int key, int action);
 void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices, bool& gameStarted, bool& gameOver);

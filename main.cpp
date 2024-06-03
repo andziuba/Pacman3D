@@ -28,8 +28,6 @@ extern bool gameOver = false;
 
 ShaderProgram* sp;
 
-// IrrKlang engine
-ISoundEngine* soundEngine;
 
 // Modele
 Model* mazeModel;
@@ -63,8 +61,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         if (key == GLFW_KEY_SPACE) {
             gameStarted = true;
             gameOver = false;
-            //soundEngine->stopAllSounds();  // Stop background music
-           // soundEngine->play2D("resources/audio/pacman_chomp.wav", true);  // Play game music in a loop
+            soundEngine->stopAllSounds();  // Stop background music
+            soundEngine->play2D("resources/audio/pacman_chomp.wav", true);  // Play game music in a loop
         }
  
 
