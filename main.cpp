@@ -7,17 +7,18 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdlib.h>
+#include <cstdlib>  
+#include <ctime>
 #include <stdio.h>
 #include <vector>
 #include <irrKlang.h>
 using namespace irrklang;
-
-
 #include "lodepng.h"
 #include "constants.h"
 #include "shaderprogram.h"
 #include "model.h"
-#include "game_logic.h"  // Include the Pacman control header
+#include "game_logic.h"
+#include "positions.h"
 
 float cameraSpeed_x = 0.0f;
 float cameraSpeed_y = 0.0f;
@@ -32,18 +33,18 @@ ShaderProgram* sp;
 Model* mazeModel;
 Model* mazeFloorModel;
 Model* pacmanModel;
-Model* ghostModelPink;
-Model* ghostModelBlue;
 Model* ghostModelRed;
+Model* ghostModelBlue;
+Model* ghostModelPink;
 Model* ghostModelOrange;
 Model* pointModel;
 
-// Zmienna globalna dla wierzchołków modelu
+// Zmienna globalna dla wierzchołków modelu labiryntu
 std::vector<float> mazeVertices;
 
-// światło
-glm::vec4 lightPos1 = glm::vec4(5.0f, 10.0f, 5.0f, 1.0f);  // Top-right position
-glm::vec4 lightPos2 = glm::vec4(-5.0f, 10.0f, 5.0f, 1.0f); // Top-left position
+// Światło
+glm::vec4 lightPos1 = glm::vec4(5.0f, 10.0f, 5.0f, 1.0f);  // Górne-prawe
+glm::vec4 lightPos2 = glm::vec4(-5.0f, 10.0f, 5.0f, 1.0f); // Górne-lewe
 glm::vec4 ks = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 // Procedura obsługi błędów
@@ -54,6 +55,7 @@ void error_callback(int error, const char* description) {
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     // Ruch kamerą za pomocą strzałek
     const float cameraSpeed = PI / 2;
+
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_LEFT) cameraSpeed_x = -cameraSpeed;
         if (key == GLFW_KEY_RIGHT) cameraSpeed_x = cameraSpeed;
@@ -62,20 +64,18 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         if (key == GLFW_KEY_SPACE) {
             gameStarted = true;
             gameOver = false;
-            soundEngine->stopAllSounds();  // Stop background music
-            soundEngine->play2D("resources/audio/pacman_chomp.wav", true);  // Play game music in a loop
+            soundEngine->stopAllSounds();
+            soundEngine->play2D("resources/audio/pacman_chomp.wav", true);
         }
- 
-
     }
+
     if (action == GLFW_RELEASE) {
         if (key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) cameraSpeed_x = 0;
         if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) cameraSpeed_y = 0;
     }
 
-    // Pac-Man control logic
+    // Logika kontroli Pacmanem
     handlePacmanControl(key, action);
-
 }
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
@@ -89,16 +89,16 @@ void initOpenGLProgram(GLFWwindow* window) {
     glEnable(GL_DEPTH_TEST);
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glfwSetKeyCallback(window, keyCallback);
-    initRandom();
+    srand(static_cast<unsigned int>(time(nullptr)));  // init random
 
     sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
     mazeModel = new Model("resources/models/maze1.obj", "resources/textures/walls.png");
     mazeFloorModel = new Model("resources/models/maze_floor.obj", "resources/textures/floor.png");
     pacmanModel = new Model("resources/models/pacman2.obj", "resources/textures/yellow.png");
-    ghostModelPink = new Model("resources/models/duszek2.obj", "resources/textures/pink.png");
-    ghostModelBlue = new Model("resources/models/duszek2.obj", "resources/textures/blue.png");
     ghostModelRed = new Model("resources/models/duszek2.obj", "resources/textures/red.png");
+    ghostModelBlue = new Model("resources/models/duszek2.obj", "resources/textures/blue.png");
+    ghostModelPink = new Model("resources/models/duszek2.obj", "resources/textures/pink.png");
     ghostModelOrange = new Model("resources/models/duszek2.obj", "resources/textures/orange.png");
     pointModel = new Model("resources/models/point.obj", "resources/textures/orange.png");
 
@@ -108,7 +108,7 @@ void initOpenGLProgram(GLFWwindow* window) {
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
 
-    // Initialize IrrKlang engine
+    // Init IrrKlang engine
     soundEngine = createIrrKlangDevice();
     if (!soundEngine) {
         fprintf(stderr, "Could not initialize IrrKlang engine.\n");
@@ -123,9 +123,9 @@ void freeOpenGLProgram(GLFWwindow* window) {
     delete mazeModel;
     delete mazeFloorModel;
     delete pacmanModel;
-    delete ghostModelPink;
-    delete ghostModelBlue;
     delete ghostModelRed;
+    delete ghostModelBlue;
+    delete ghostModelPink;
     delete ghostModelOrange;
     delete pointModel;
 }
@@ -155,7 +155,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
 
-    // Draw maze
+    // Rysowanie labiryntu
     glm::mat4 mazeM = glm::translate(M, mazePosition);
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeM));
     mazeModel->draw(sp);
@@ -164,13 +164,13 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeFloorM));
     mazeFloorModel->draw(sp);
 
-    // Update Pacman's position
+    // Zmiana pozycji Pacmana i duszków
     if (gameStarted && !gameOver) {
         updatePacmanPosition(deltaTime, mazeVertices, gameStarted, gameOver);
         updateGhostPositions(deltaTime, mazeVertices);
     }
     
-    // Calculate rotation angle based on Pacman's last movement direction
+    // Rotacja Pacmana
     float rotationAngle = 0.0f;
     switch (lastPacmanDirection) {
     case RIGHT:
@@ -187,30 +187,30 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
         break;
     }
 
-    // draw points
+    // Rysowanie monet
     for (const auto& position : pointPositions) {
         glm::mat4 pointM = glm::translate(M, position); 
-        //pointM = glm::rotate(pointM, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation
-        //pointM = glm::scale(pointM, glm::vec3(0.5f, 0.5f, 0.5f)); // Apply scaling
+        //pointM = glm::rotate(pointM, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); 
+        //pointM = glm::scale(pointM, glm::vec3(0.5f, 0.5f, 0.5f)); 
         glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pointM));
         pointModel->draw(sp);
     }
 
-    // Draw Pacman
-    glm::mat4 pacmanM = glm::translate(M, pacmanPosition); // Translate based on Pacman's position
-    pacmanM = glm::rotate(pacmanM, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation
-    pacmanM = glm::scale(pacmanM, glm::vec3(0.15f, 0.15f, 0.15f)); // Apply scaling
+    // Rysowanie Pacmana
+    glm::mat4 pacmanM = glm::translate(M, pacmanPosition); 
+    pacmanM = glm::rotate(pacmanM, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f)); 
+    pacmanM = glm::scale(pacmanM, glm::vec3(0.15f, 0.15f, 0.15f)); 
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pacmanM));
     pacmanModel->draw(sp);
 
-    // Draw Ghosts
-    glm::vec3 ghostPositions[] = { ghostPositionPink, ghostPositionBlue, ghostPositionRed, ghostPositionOrange };
-    Model* ghostModels[] = { ghostModelPink, ghostModelBlue, ghostModelRed, ghostModelOrange };
+    // Rysowanie duszków
+    glm::vec3 ghostPositions[] = { ghostPositionRed, ghostPositionBlue, ghostPositionPink, ghostPositionOrange };
+    Model* ghostModels[] = { ghostModelRed, ghostModelBlue, ghostModelPink, ghostModelOrange };
 
     for (int i = 0; i < 4; i++) {
         glm::mat4 ghostM = glm::translate(M, ghostPositions[i]);
         ghostM = glm::rotate(ghostM, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ghostM = glm::scale(ghostM, glm::vec3(0.3f, 0.3f, 0.3f)); // Apply scaling
+        ghostM = glm::scale(ghostM, glm::vec3(0.3f, 0.3f, 0.3f)); 
         glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostM));
         ghostModels[i]->draw(sp);
     }

@@ -1,132 +1,45 @@
 #include "game_logic.h"
-#include "model.h"
-#include <GLFW/glfw3.h>
-#include <iostream>
-#include <cstdlib> // For rand() and srand()
-#include <ctime> // For time()
-#include <glm/glm.hpp> // For glm::vec3
 #include <irrKlang.h>
 using namespace irrklang;
-#include <chrono>
-#include <thread>
 
-
-// IrrKlang engine
 ISoundEngine* soundEngine;
 
-glm::vec3 mazePosition = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 mazeFloorPosition = glm::vec3(0.0f, -0.5f, 0.0f);
-glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 2.5f);  // Initial position of Pacman
-glm::vec3 ghostPositionPink = glm::vec3(0.0f, 0.0f, -0.2f);
-glm::vec3 ghostPositionBlue = glm::vec3(-0.5f, 0.0f, -0.2f);
-glm::vec3 ghostPositionRed = glm::vec3(0.0f, 0.0f, -1.1f);
-glm::vec3 ghostPositionOrange = glm::vec3(0.5f, 0.0f, -0.2f);
-
-std::vector<glm::vec3> pointPositions = {
-    glm::vec3(3.8f, 0.0f, 4.3f),
-    glm::vec3(2.85f, 0.0f, 4.3f),
-    glm::vec3(1.9f, 0.0f, 4.3f),
-    glm::vec3(0.95f, 0.0f, 4.3f),
-    glm::vec3(0.0f, 0.0f, 4.3f),
-    glm::vec3(-3.8f, 0.0f, 4.3f),
-    glm::vec3(-2.85f, 0.0f, 4.3f),
-    glm::vec3(-1.9f, 0.0f, 4.3f),
-    glm::vec3(-0.95f, 0.0f, 4.3f),
-
-    glm::vec3(3.8f, 0.0f, 3.4f),
-    glm::vec3(2.85f, 0.0f, 3.4f),
-    glm::vec3(0.95f, 0.0f, 3.4f),
-    glm::vec3(-3.8f, 0.0f, 3.4f),
-    glm::vec3(-2.85f, 0.0f, 3.4f),
-    glm::vec3(-0.95f, 0.0f, 3.4f),
-
-    glm::vec3(3.8f, 0.0f, 2.45f),
-    glm::vec3(1.9f, 0.0f, 2.45f),
-    glm::vec3(0.95f, 0.0f, 2.45f),
-    glm::vec3(-3.8f, 0.0f, 2.45f),
-    glm::vec3(-1.9f, 0.0f, 2.45f),
-    glm::vec3(-0.95f, 0.0f, 2.45f),
-
-    glm::vec3(3.8f, 0.0f, 1.5f),
-    glm::vec3(2.85f, 0.0f, 1.5f),
-    glm::vec3(1.9f, 0.0f, 1.5f),
-    glm::vec3(0.95f, 0.0f, 1.5f),
-    glm::vec3(-3.8f, 0.0f, 1.5f),
-    glm::vec3(-2.85f, 0.0f, 1.5f),
-    glm::vec3(-1.9f, 0.0f, 1.5f),
-    glm::vec3(-0.95f, 0.0f, 1.5f),
-
-    glm::vec3(0.95f, 0.0f, 0.6f),
-    glm::vec3(0.0f, 0.0f, 0.6f),
-    glm::vec3(-0.95f, 0.0f, 0.6f),
-
-    glm::vec3(3.8f, 0.0f, -0.3f),
-    glm::vec3(2.85f, 0.0f, -0.3f),
-    glm::vec3(1.9f, 0.0f, -0.3f),
-    glm::vec3(-3.8f, 0.0f, -0.3f),
-    glm::vec3(-2.85f, 0.0f, -0.3f),
-    glm::vec3(-1.9f, 0.0f, -0.3f),
-
-    glm::vec3(0.95f, 0.0f, -1.2f),
-    glm::vec3(0.0f, 0.0f, -1.2f),
-    glm::vec3(-0.95f, 0.0f, -1.2f),
-
-    glm::vec3(3.8f, 0.0f, -2.15f),
-    glm::vec3(2.85f, 0.0f, -2.15f),
-    glm::vec3(0.95f, 0.0f, -2.15f),
-    glm::vec3(-3.8f, 0.0f, -2.15f),
-    glm::vec3(-2.85f, 0.0f, -2.15f),
-    glm::vec3(-0.95f, 0.0f, -2.15f),
-
-    glm::vec3(3.8f, 0.0f, -3.05f),
-    glm::vec3(2.85f, 0.0f, -3.05f),
-    glm::vec3(1.9f, 0.0f, -3.05f),
-    glm::vec3(0.95f, 0.0f, -3.05f),
-    glm::vec3(0.0f, 0.0f, -3.05f),
-    glm::vec3(-3.8f, 0.0f, -3.05f),
-    glm::vec3(-2.85f, 0.0f, -3.05f),
-    glm::vec3(-1.9f, 0.0f, -3.05f),
-    glm::vec3(-0.95f, 0.0f, -3.05f),
-
-    glm::vec3(3.8f, 0.0f, -4.3f),
-    glm::vec3(2.85f, 0.0f, -4.3f),
-    glm::vec3(1.9f, 0.0f, -4.3f),
-    glm::vec3(0.95f, 0.0f, -4.3f),
-    glm::vec3(-3.8f, 0.0f, -4.3f),
-    glm::vec3(-2.85f, 0.0f, -4.3f),
-    glm::vec3(-1.9f, 0.0f, -4.3f),
-    glm::vec3(-0.95f, 0.0f, -4.3f),
-};
-
+// Pacman
+glm::vec3 pacmanPosition = pacmanPositionInitial;
 const float pacmanSpeed = 2.0f;
-const float ghostSpeed = 2.0f;
 float pacmanSpeed_x = 0.0f;
 float pacmanSpeed_y = 0.0f;
-float detectionDistance = 0.18f; // Distance to check for collisions
+float detectionDistance = 0.18f;
+Direction lastPacmanDirection = RIGHT; 
+Direction desiredPacmanDirection = RIGHT; 
+
+// Duszki
+glm::vec3 ghostPositionRed = ghostPositionRedInitial;
+glm::vec3 ghostPositionBlue = ghostPositionBlueInitial;
+glm::vec3 ghostPositionPink = ghostPositionPinkInitial;
+glm::vec3 ghostPositionOrange = ghostPositionOrangeInitial;
+const float ghostSpeed = 2.0f;
 float ghostDetectionDistance = 0.3f;
-
-Direction lastPacmanDirection = RIGHT; // Initial direction
-Direction desiredPacmanDirection = RIGHT; // Desired direction
-
-Direction ghostDirections[4] = { UP, DOWN, LEFT, RIGHT };
-enum GhostState { PREAPARING, NORMAL };
-GhostState ghostStates[4] = { PREAPARING, PREAPARING, NORMAL, PREAPARING };
-
-const glm::vec3 restrictedZoneMin(-1.0f, 0.0f, -1.0f); // Define the minimum corner of the restricted zone
-const glm::vec3 restrictedZoneMax(1.0f, 0.0f, 1.0f); // Define the maximum corner of the restricted zone
-
-bool isInRestrictedZone(const glm::vec3& position) {
-    return (position.x > restrictedZoneMin.x && position.x < restrictedZoneMax.x &&
-        position.z > restrictedZoneMin.z && position.z < restrictedZoneMax.z);
-}
-
+GhostState ghostStates[4] = { NORMAL, PREAPARING, PREAPARING, PREAPARING }; // red, blue, pink, orange
 
 void stopPacman() {
     pacmanSpeed_x = 0.0f;
     pacmanSpeed_y = 0.0f;
 }
 
-void resetPacman(bool& gameStarted, bool& gameOver) {
+void resetGhosts() {
+    ghostPositionRed = ghostPositionRedInitial;
+    ghostPositionBlue = ghostPositionBlueInitial;
+    ghostPositionPink = ghostPositionPinkInitial;
+    ghostPositionOrange = ghostPositionOrangeInitial;
+
+    ghostStates[0] = NORMAL;  // red
+    ghostStates[1] = PREAPARING;
+    ghostStates[2] = PREAPARING;
+    ghostStates[3] = PREAPARING;
+}
+
+void resetGame(bool& gameStarted, bool& gameOver) {
     gameStarted = false;
     gameOver = true;
 
@@ -138,7 +51,7 @@ void resetPacman(bool& gameStarted, bool& gameOver) {
     soundEngine->stopAllSounds();
     soundEngine->play2D("resources/audio/pacman_beginning.wav", true);
 
-    pacmanPosition = glm::vec3(0.0f, 0.0f, 2.3f);
+    pacmanPosition = pacmanPositionInitial;
 
     stopPacman();
     resetGhosts();
@@ -146,31 +59,19 @@ void resetPacman(bool& gameStarted, bool& gameOver) {
     lastPacmanDirection = RIGHT;
 }
 
-void resetGhosts() {
-    ghostPositionPink = glm::vec3(0.0f, 0.0f, -0.2f);
-    ghostPositionBlue = glm::vec3(-0.5f, 0.0f, -0.2f);
-    ghostPositionRed = glm::vec3(0.0f, 0.0f, -1.1f);
-    ghostPositionOrange = glm::vec3(0.5f, 0.0f, -0.2f);
-
-    ghostStates[0] = PREAPARING;
-    ghostStates[1] = PREAPARING;
-    ghostStates[2] = NORMAL;
-    ghostStates[3] = PREAPARING;
-}
-
 void handlePacmanControl(int key, int action) {
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         switch (key) {
-        case GLFW_KEY_W: // up
+        case GLFW_KEY_W: 
             desiredPacmanDirection = UP;
             break;
-        case GLFW_KEY_S: // down
+        case GLFW_KEY_S: 
             desiredPacmanDirection = DOWN;
             break;
-        case GLFW_KEY_A: // left
+        case GLFW_KEY_A: 
             desiredPacmanDirection = LEFT;
             break;
-        case GLFW_KEY_D: // right
+        case GLFW_KEY_D: 
             desiredPacmanDirection = RIGHT;
             break;
         }
@@ -190,7 +91,7 @@ bool isPointInTriangle(glm::vec2 p, glm::vec2 a, glm::vec2 b, glm::vec2 c, float
     float denom = d00 * d11 - d01 * d01;
 
     if (denom == 0.0f) {
-        return false; // Degenerate triangle
+        return false; // trójk¹t zdegenerowany
     }
 
     u = (d11 * d20 - d01 * d21) / denom;
@@ -200,7 +101,7 @@ bool isPointInTriangle(glm::vec2 p, glm::vec2 a, glm::vec2 b, glm::vec2 c, float
     return (u >= 0.0f) && (v >= 0.0f) && (w >= 0.0f);
 }
 
-bool checkCollision(const glm::vec3& position, const std::vector<float>& mazeVertices) {
+bool checkWallCollision(const glm::vec3& position, const std::vector<float>& mazeVertices) {
     for (size_t i = 0; i < mazeVertices.size(); i += 9) {
         glm::vec3 v0(mazeVertices[i], mazeVertices[i + 1], mazeVertices[i + 2]);
         glm::vec3 v1(mazeVertices[i + 3], mazeVertices[i + 4], mazeVertices[i + 5]);
@@ -208,17 +109,47 @@ bool checkCollision(const glm::vec3& position, const std::vector<float>& mazeVer
 
         float u, v;
         if (isPointInTriangle(glm::vec2(position.x, position.z), glm::vec2(v0.x, v0.z), glm::vec2(v1.x, v1.z), glm::vec2(v2.x, v2.z), u, v)) {
-            return true; // Collision detected
+            return true; // kolizja
         }
     }
-    return false; // No collision detected
+    return false; // brak kolizji
+}
+
+bool detectCollision(glm::vec3 position1, glm::vec3 position2, float collisionDistance) {
+    float distance = glm::distance(position1, position2);
+    return distance < collisionDistance;
+}
+
+bool checkPacmanGhostCollision() {
+    if (detectCollision(pacmanPosition, ghostPositionRed, detectionDistance)) {
+        return true;
+    }
+    if (detectCollision(pacmanPosition, ghostPositionBlue, detectionDistance)) {
+        return true;
+    }
+    if (detectCollision(pacmanPosition, ghostPositionPink, detectionDistance)) {
+        return true;
+    }
+    if (detectCollision(pacmanPosition, ghostPositionOrange, detectionDistance)) {
+        return true;
+    }
+    return false;
+}
+
+bool checkPacmanPointCollision() {
+    for (const glm::vec3& position : pointPositions) {
+        if (detectCollision(pacmanPosition, position, detectionDistance)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices, bool& gameStarted, bool& gameOver) {
-        if (pacmanPosition.x > 4.5f) {
+        if (pacmanPosition.x > 4.5f) {  // przejœcie na drug¹ stronê 
             pacmanPosition.x = -4.3f;
         }
-        else if (pacmanPosition.x < -4.5f) {
+        else if (pacmanPosition.x < -4.5f) {  // przejœcie na drug¹ stronê
             pacmanPosition.x = 4.3f;
         }
         else {
@@ -247,9 +178,9 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
 
             // Check for collision in the desired direction using detectionDistance
             glm::vec3 detectionPosition = pacmanPosition + glm::vec3(newSpeed_x * detectionDistance, 0.0f, newSpeed_y * detectionDistance);
-            if (!checkCollision(detectionPosition, mazeVertices)) {
+            if (!checkWallCollision(detectionPosition, mazeVertices)) {
                 if (checkPacmanGhostCollision()) {
-                    resetPacman(gameStarted, gameOver);
+                    resetGame(gameStarted, gameOver);
                 }
                 else {
                     // If no collision, update Pacman's position and speed
@@ -283,10 +214,10 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
                 // Check for collision in the last valid direction using detectionDistance
                 detectionPosition = pacmanPosition + glm::vec3(newSpeed_x * detectionDistance, 0.0f, newSpeed_y * detectionDistance);
                 potentialPosition = pacmanPosition + glm::vec3(newSpeed_x * deltaTime, 0.0f, newSpeed_y * deltaTime);
-                if (!checkCollision(detectionPosition, mazeVertices)) {
+                if (!checkWallCollision(detectionPosition, mazeVertices)) {
                     // If no collision, update Pacman's position and continue in the last valid direction
                     if (checkPacmanGhostCollision()) {
-                        resetPacman(gameStarted, gameOver);
+                        resetGame(gameStarted, gameOver);
                     }
                     else {
                         pacmanPosition = potentialPosition;
@@ -301,25 +232,19 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
             }
         }
 
+        // Jeœli wykryto kolizjê Pacmana z monet¹, model monety jest usuwany
         for (auto it = pointPositions.begin(); it != pointPositions.end(); ) {
             if (detectCollision(pacmanPosition, *it, detectionDistance)) {
-                // Remove the ball from pointPositions vector
-                it = pointPositions.erase(it);
+                it = pointPositions.erase(it);  // usuñ monetê z wektora
             }
             else {
                 ++it;
             }
         }
-
-}
-
-
-void initRandom() {
-    srand(static_cast<unsigned int>(time(nullptr)));
 }
 
 Direction getRandomDirection() {
-    return ghostDirections[rand() % 4];
+    return Direction(rand() % 4);
 }
 
 glm::vec3 getDirectionVector(Direction direction) {
@@ -349,6 +274,10 @@ void updateGhostTransition(glm::vec3& ghostPosition, glm::vec3 targetPosition, f
     }
 }
 
+bool isInRestrictedZone(const glm::vec3& position) {
+    return (position.x > restrictedZoneMin.x && position.x < restrictedZoneMax.x &&
+        position.z > restrictedZoneMin.z && position.z < restrictedZoneMax.z);
+}
 
 void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, const std::vector<float>& mazeVertices, float deltaTime) {
     glm::vec3 directionVector = getDirectionVector(currentDirection);
@@ -358,7 +287,7 @@ void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, 
     glm::vec3 detectionPosition = ghostPosition + directionVector * ghostDetectionDistance;
 
     // Check if the potential position is in the restricted zone
-    if (!checkCollision(detectionPosition, mazeVertices) && !isInRestrictedZone(potentialPosition)) {
+    if (!checkWallCollision(detectionPosition, mazeVertices) && !isInRestrictedZone(potentialPosition)) {
         ghostPosition = potentialPosition;
     }
     else {
@@ -375,30 +304,20 @@ void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, 
     }
 }
 
-
 void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices) {
-    static Direction currentDirectionPink = getRandomDirection();
-    static Direction currentDirectionBlue = getRandomDirection();
     static Direction currentDirectionRed = getRandomDirection();
+    static Direction currentDirectionBlue = getRandomDirection();
+    static Direction currentDirectionPink = getRandomDirection();
     static Direction currentDirectionOrange = getRandomDirection();
 
-    glm::vec3 redInitialPosition = glm::vec3(0.0f, 0.0f, -1.1f);
+    // Red ghost
+    updateGhostPosition(ghostPositionRed, currentDirectionRed, mazeVertices, deltaTime);
 
-    // Handle Pink Ghost
-    if (ghostStates[0] == PREAPARING) {
-        updateGhostTransition(ghostPositionPink, redInitialPosition, deltaTime);
-        if (ghostPositionPink == redInitialPosition) {
-            ghostStates[0] = NORMAL;
-        }
-    }
-    else {
-        updateGhostPosition(ghostPositionPink, currentDirectionPink, mazeVertices, deltaTime);
-    }
+    // At the beginning of the game (PREAPARING), move blue, pink and orange ghosts
 
-    // Handle Blue Ghost
     if (ghostStates[1] == PREAPARING) {
-        updateGhostTransition(ghostPositionBlue, redInitialPosition, deltaTime);
-        if (ghostPositionBlue == redInitialPosition) {
+        updateGhostTransition(ghostPositionBlue, ghostPositionRedInitial, deltaTime);
+        if (ghostPositionBlue == ghostPositionRedInitial) {
             ghostStates[1] = NORMAL;
         }
     }
@@ -406,56 +325,23 @@ void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertice
         updateGhostPosition(ghostPositionBlue, currentDirectionBlue, mazeVertices, deltaTime);
     }
 
-    // Handle Red Ghost
     if (ghostStates[2] == PREAPARING) {
-        updateGhostTransition(ghostPositionRed, redInitialPosition, deltaTime);
-        if (ghostPositionRed == redInitialPosition) {
+        updateGhostTransition(ghostPositionPink, ghostPositionRedInitial, deltaTime);
+        if (ghostPositionPink == ghostPositionRedInitial) {
             ghostStates[2] = NORMAL;
         }
     }
     else {
-        updateGhostPosition(ghostPositionRed, currentDirectionRed, mazeVertices, deltaTime);
+        updateGhostPosition(ghostPositionPink, currentDirectionPink, mazeVertices, deltaTime);
     }
 
-    // Handle Orange Ghost
     if (ghostStates[3] == PREAPARING) {
-        updateGhostTransition(ghostPositionOrange, redInitialPosition, deltaTime);
-        if (ghostPositionOrange == redInitialPosition) {
+        updateGhostTransition(ghostPositionOrange, ghostPositionRedInitial, deltaTime);
+        if (ghostPositionOrange == ghostPositionRedInitial) {
             ghostStates[3] = NORMAL;
         }
     }
     else {
         updateGhostPosition(ghostPositionOrange, currentDirectionOrange, mazeVertices, deltaTime);
     }
-}
-
-
-bool detectCollision(glm::vec3 position1, glm::vec3 position2, float collisionDistance) {
-    float distance = glm::distance(position1, position2);
-    return distance < collisionDistance;
-}
-
-bool checkPacmanGhostCollision() {
-    if (detectCollision(pacmanPosition, ghostPositionPink, detectionDistance)) {
-        return true;
-    }
-    if (detectCollision(pacmanPosition, ghostPositionBlue, detectionDistance)) {
-        return true;
-    }
-    if (detectCollision(pacmanPosition, ghostPositionRed, detectionDistance)) {
-        return true;
-    }
-    if (detectCollision(pacmanPosition, ghostPositionOrange, detectionDistance)) {
-        return true;
-    }
-    return false;
-}
-
-bool checkPacmanPointCollision() {
-    for (const glm::vec3& position : pointPositions) {
-        if (detectCollision(pacmanPosition, position, detectionDistance)) {
-            return true;
-        }
-    }
-    return false;
 }

@@ -1,0 +1,23 @@
+#ifndef POSITIONS_H
+#define POSITIONS_H
+
+#include <glm/glm.hpp>
+#include <vector>
+
+extern glm::vec3 mazePosition;
+extern glm::vec3 mazeFloorPosition;
+
+// Miejsce na mapie, do którego nie maj¹ dostêpu duszki, po wyjœciu z niego
+extern const glm::vec3 restrictedZoneMin;
+extern const glm::vec3 restrictedZoneMax;
+
+extern glm::vec3 pacmanPositionInitial;
+
+extern glm::vec3 ghostPositionRedInitial;
+extern glm::vec3 ghostPositionBlueInitial;
+extern glm::vec3 ghostPositionPinkInitial;
+extern glm::vec3 ghostPositionOrangeInitial;
+
+extern std::vector<glm::vec3> pointPositions;
+
+#endif

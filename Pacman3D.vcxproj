@@ -139,6 +139,7 @@
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="positions.cpp" />
     <ClCompile Include="shaderprogram.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -148,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="constants.h" />
     <ClInclude Include="game_logic.h" />
+    <ClInclude Include="positions.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="shaderprogram.h" />
