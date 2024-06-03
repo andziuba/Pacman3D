@@ -14,12 +14,14 @@ using namespace irrklang;
 // IrrKlang engine
 ISoundEngine* soundEngine;
 
-glm::vec3 mazePosition = glm::vec3(0.0f, -0.3f, 0.0f);
-glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 2.3f);  // Initial position of Pacman
+glm::vec3 mazePosition = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 mazeFloorPosition = glm::vec3(0.0f, -0.5f, 0.0f);
+glm::vec3 pacmanPosition = glm::vec3(0.0f, 0.0f, 2.5f);  // Initial position of Pacman
 glm::vec3 ghostPositionPink = glm::vec3(0.0f, 0.0f, -0.2f);
 glm::vec3 ghostPositionBlue = glm::vec3(-0.5f, 0.0f, -0.2f);
 glm::vec3 ghostPositionRed = glm::vec3(0.0f, 0.0f, -1.1f);
 glm::vec3 ghostPositionOrange = glm::vec3(0.5f, 0.0f, -0.2f);
+glm::vec3 pointPosition = glm::vec3(0.5f, 0.0f, 2.3f);
 
 const float pacmanSpeed = 2.0f;
 const float ghostSpeed = 2.0f;

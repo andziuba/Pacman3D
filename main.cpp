@@ -31,11 +31,13 @@ ShaderProgram* sp;
 
 // Modele
 Model* mazeModel;
+Model* mazeFloorModel;
 Model* pacmanModel;
 Model* ghostModelPink;
 Model* ghostModelBlue;
 Model* ghostModelRed;
 Model* ghostModelOrange;
+Model* pointModel;
 
 // Zmienna globalna dla wierzchołków modelu
 std::vector<float> mazeVertices;
@@ -92,12 +94,14 @@ void initOpenGLProgram(GLFWwindow* window) {
 
     sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
-    mazeModel = new Model("resources/models/maze.obj", "resources/textures/bricks1.png");
+    mazeModel = new Model("resources/models/maze1.obj", "resources/textures/walls.png");
+    mazeFloorModel = new Model("resources/models/maze_floor.obj", "resources/textures/floor.png");
     pacmanModel = new Model("resources/models/pacman2.obj", "resources/textures/yellow.png");
     ghostModelPink = new Model("resources/models/duszek2.obj", "resources/textures/pink.png");
     ghostModelBlue = new Model("resources/models/duszek2.obj", "resources/textures/blue.png");
     ghostModelRed = new Model("resources/models/duszek2.obj", "resources/textures/red.png");
     ghostModelOrange = new Model("resources/models/duszek2.obj", "resources/textures/orange.png");
+    pointModel = new Model("resources/models/point.obj", "resources/textures/orange.png");
 
     mazeVertices = mazeModel->getVertices();
 
@@ -118,11 +122,13 @@ void initOpenGLProgram(GLFWwindow* window) {
 void freeOpenGLProgram(GLFWwindow* window) {
     delete sp;
     delete mazeModel;
+    delete mazeFloorModel;
     delete pacmanModel;
     delete ghostModelPink;
     delete ghostModelBlue;
     delete ghostModelRed;
     delete ghostModelOrange;
+    delete pointModel;
 }
 
 void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime) {
@@ -154,6 +160,10 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     glm::mat4 mazeM = glm::translate(M, mazePosition);
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeM));
     mazeModel->draw(sp);
+
+    glm::mat4 mazeFloorM = glm::translate(M, mazeFloorPosition);
+    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeFloorM));
+    mazeFloorModel->draw(sp);
 
     // Update Pacman's position
     if (gameStarted && !gameOver) {
@@ -196,6 +206,13 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
         glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostM));
         ghostModels[i]->draw(sp);
     }
+
+    //Draw point
+    glm::mat4 pointM = glm::translate(M, pointPosition); // Translate based on Pacman's position
+    pointM = glm::rotate(pointM, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation
+    //pointM = glm::scale(pointM, glm::vec3(0.5f, 0.5f, 0.5f)); // Apply scaling
+    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pointM));
+    pointModel->draw(sp);
 
     // Wysłanie do GPU świateł
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
