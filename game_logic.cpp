@@ -22,7 +22,19 @@ float ghostDetectionDistance = 0.3f;
 
 Direction lastPacmanDirection = RIGHT; // Initial direction
 Direction desiredPacmanDirection = RIGHT; // Desired direction
+
 Direction ghostDirections[4] = { UP, DOWN, LEFT, RIGHT };
+enum GhostState { PREAPARING, NORMAL };
+GhostState ghostStates[4] = { PREAPARING, PREAPARING, NORMAL, PREAPARING };
+
+const glm::vec3 restrictedZoneMin(-1.0f, 0.0f, -1.0f); // Define the minimum corner of the restricted zone
+const glm::vec3 restrictedZoneMax(1.0f, 0.0f, 1.0f); // Define the maximum corner of the restricted zone
+
+bool isInRestrictedZone(const glm::vec3& position) {
+    return (position.x > restrictedZoneMin.x && position.x < restrictedZoneMax.x &&
+        position.z > restrictedZoneMin.z && position.z < restrictedZoneMax.z);
+}
+
 
 void stopPacman() {
     pacmanSpeed_x = 0.0f;
@@ -46,6 +58,11 @@ void resetGhosts() {
     ghostPositionBlue = glm::vec3(-0.5f, 0.0f, -0.2f);
     ghostPositionRed = glm::vec3(0.0f, 0.0f, -1.1f);
     ghostPositionOrange = glm::vec3(0.5f, 0.0f, -0.2f);
+
+    ghostStates[0] = PREAPARING;
+    ghostStates[1] = PREAPARING;
+    ghostStates[2] = NORMAL;
+    ghostStates[3] = PREAPARING;
 }
 
 void handlePacmanControl(int key, int action) {
@@ -217,17 +234,32 @@ glm::vec3 getDirectionVector(Direction direction) {
     }
 }
 
+void updateGhostTransition(glm::vec3& ghostPosition, glm::vec3 targetPosition, float deltaTime) {
+    glm::vec3 direction = glm::normalize(targetPosition - ghostPosition);
+    glm::vec3 movement = direction * ghostSpeed * deltaTime;
+
+    if (glm::length(targetPosition - ghostPosition) < glm::length(movement)) {
+        ghostPosition = targetPosition;
+    }
+    else {
+        ghostPosition += movement;
+    }
+}
+
+
 void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, const std::vector<float>& mazeVertices, float deltaTime) {
     glm::vec3 directionVector = getDirectionVector(currentDirection);
     glm::vec3 potentialPosition = ghostPosition + directionVector * ghostSpeed * deltaTime;
 
     // Check for collisions in the desired direction using detectionDistance
     glm::vec3 detectionPosition = ghostPosition + directionVector * ghostDetectionDistance;
-    if (!checkCollision(detectionPosition, mazeVertices)) {
+
+    // Check if the potential position is in the restricted zone
+    if (!checkCollision(detectionPosition, mazeVertices) && !isInRestrictedZone(potentialPosition)) {
         ghostPosition = potentialPosition;
     }
     else {
-        // If a collision occurs, choose a new random direction
+        // If a collision occurs or the ghost is trying to enter the restricted zone, choose a new random direction
         currentDirection = getRandomDirection();
     }
 
@@ -240,18 +272,60 @@ void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, 
     }
 }
 
+
 void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices) {
-    // Each ghost has its own direction
     static Direction currentDirectionPink = getRandomDirection();
     static Direction currentDirectionBlue = getRandomDirection();
     static Direction currentDirectionRed = getRandomDirection();
     static Direction currentDirectionOrange = getRandomDirection();
 
-    updateGhostPosition(ghostPositionPink, currentDirectionPink, mazeVertices, deltaTime);
-    updateGhostPosition(ghostPositionBlue, currentDirectionBlue, mazeVertices, deltaTime);
-    updateGhostPosition(ghostPositionRed, currentDirectionRed, mazeVertices, deltaTime);
-    updateGhostPosition(ghostPositionOrange, currentDirectionOrange, mazeVertices, deltaTime);
+    glm::vec3 redInitialPosition = glm::vec3(0.0f, 0.0f, -1.1f);
+
+    // Handle Pink Ghost
+    if (ghostStates[0] == PREAPARING) {
+        updateGhostTransition(ghostPositionPink, redInitialPosition, deltaTime);
+        if (ghostPositionPink == redInitialPosition) {
+            ghostStates[0] = NORMAL;
+        }
+    }
+    else {
+        updateGhostPosition(ghostPositionPink, currentDirectionPink, mazeVertices, deltaTime);
+    }
+
+    // Handle Blue Ghost
+    if (ghostStates[1] == PREAPARING) {
+        updateGhostTransition(ghostPositionBlue, redInitialPosition, deltaTime);
+        if (ghostPositionBlue == redInitialPosition) {
+            ghostStates[1] = NORMAL;
+        }
+    }
+    else {
+        updateGhostPosition(ghostPositionBlue, currentDirectionBlue, mazeVertices, deltaTime);
+    }
+
+    // Handle Red Ghost
+    if (ghostStates[2] == PREAPARING) {
+        updateGhostTransition(ghostPositionRed, redInitialPosition, deltaTime);
+        if (ghostPositionRed == redInitialPosition) {
+            ghostStates[2] = NORMAL;
+        }
+    }
+    else {
+        updateGhostPosition(ghostPositionRed, currentDirectionRed, mazeVertices, deltaTime);
+    }
+
+    // Handle Orange Ghost
+    if (ghostStates[3] == PREAPARING) {
+        updateGhostTransition(ghostPositionOrange, redInitialPosition, deltaTime);
+        if (ghostPositionOrange == redInitialPosition) {
+            ghostStates[3] = NORMAL;
+        }
+    }
+    else {
+        updateGhostPosition(ghostPositionOrange, currentDirectionOrange, mazeVertices, deltaTime);
+    }
 }
+
 
 bool detectCollision(glm::vec3 position1, glm::vec3 position2, float collisionDistance) {
     float distance = glm::distance(position1, position2);

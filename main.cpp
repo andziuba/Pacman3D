@@ -94,7 +94,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 
     sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
-    mazeModel = new Model("resources/models/labirynt2.obj", "resources/textures/bricks1.png");
+    mazeModel = new Model("resources/models/maze.obj", "resources/textures/bricks1.png");
     pacmanModel = new Model("resources/models/pacman2.obj", "resources/textures/yellow.png");
     ghostModelPink = new Model("resources/models/duszek2.obj", "resources/textures/pink.png");
     ghostModelBlue = new Model("resources/models/duszek2.obj", "resources/textures/blue.png");
