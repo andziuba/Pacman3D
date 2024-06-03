@@ -7,7 +7,8 @@
 using namespace irrklang;
 
 // Zmienne do przechowywania pozycji 
-extern glm::vec3 pacmanPosition, mazePosition, mazeFloorPosition, ghostPositionPink, ghostPositionBlue, ghostPositionRed, ghostPositionOrange, pointPosition;
+extern glm::vec3 pacmanPosition, mazePosition, mazeFloorPosition, ghostPositionPink, ghostPositionBlue, ghostPositionRed, ghostPositionOrange, pointPosition, pointPosition2;
+extern std::vector<glm::vec3> pointPositions;
 
 extern float pacmanSpeed_x;
 extern float pacmanSpeed_y;

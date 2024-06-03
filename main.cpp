@@ -28,7 +28,6 @@ extern bool gameOver = false;
 
 ShaderProgram* sp;
 
-
 // Modele
 Model* mazeModel;
 Model* mazeFloorModel;
@@ -188,6 +187,15 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
         break;
     }
 
+    // draw points
+    for (const auto& position : pointPositions) {
+        glm::mat4 pointM = glm::translate(M, position); 
+        //pointM = glm::rotate(pointM, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation
+        //pointM = glm::scale(pointM, glm::vec3(0.5f, 0.5f, 0.5f)); // Apply scaling
+        glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pointM));
+        pointModel->draw(sp);
+    }
+
     // Draw Pacman
     glm::mat4 pacmanM = glm::translate(M, pacmanPosition); // Translate based on Pacman's position
     pacmanM = glm::rotate(pacmanM, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation
@@ -206,13 +214,6 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
         glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostM));
         ghostModels[i]->draw(sp);
     }
-
-    //Draw point
-    glm::mat4 pointM = glm::translate(M, pointPosition); // Translate based on Pacman's position
-    pointM = glm::rotate(pointM, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // Apply rotation
-    //pointM = glm::scale(pointM, glm::vec3(0.5f, 0.5f, 0.5f)); // Apply scaling
-    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pointM));
-    pointModel->draw(sp);
 
     // Wysłanie do GPU świateł
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));

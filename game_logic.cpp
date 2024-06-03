@@ -21,7 +21,82 @@ glm::vec3 ghostPositionPink = glm::vec3(0.0f, 0.0f, -0.2f);
 glm::vec3 ghostPositionBlue = glm::vec3(-0.5f, 0.0f, -0.2f);
 glm::vec3 ghostPositionRed = glm::vec3(0.0f, 0.0f, -1.1f);
 glm::vec3 ghostPositionOrange = glm::vec3(0.5f, 0.0f, -0.2f);
-glm::vec3 pointPosition = glm::vec3(0.5f, 0.0f, 2.3f);
+
+std::vector<glm::vec3> pointPositions = {
+    glm::vec3(3.8f, 0.0f, 4.3f),
+    glm::vec3(2.85f, 0.0f, 4.3f),
+    glm::vec3(1.9f, 0.0f, 4.3f),
+    glm::vec3(0.95f, 0.0f, 4.3f),
+    glm::vec3(0.0f, 0.0f, 4.3f),
+    glm::vec3(-3.8f, 0.0f, 4.3f),
+    glm::vec3(-2.85f, 0.0f, 4.3f),
+    glm::vec3(-1.9f, 0.0f, 4.3f),
+    glm::vec3(-0.95f, 0.0f, 4.3f),
+
+    glm::vec3(3.8f, 0.0f, 3.4f),
+    glm::vec3(2.85f, 0.0f, 3.4f),
+    glm::vec3(0.95f, 0.0f, 3.4f),
+    glm::vec3(-3.8f, 0.0f, 3.4f),
+    glm::vec3(-2.85f, 0.0f, 3.4f),
+    glm::vec3(-0.95f, 0.0f, 3.4f),
+
+    glm::vec3(3.8f, 0.0f, 2.45f),
+    glm::vec3(1.9f, 0.0f, 2.45f),
+    glm::vec3(0.95f, 0.0f, 2.45f),
+    glm::vec3(-3.8f, 0.0f, 2.45f),
+    glm::vec3(-1.9f, 0.0f, 2.45f),
+    glm::vec3(-0.95f, 0.0f, 2.45f),
+
+    glm::vec3(3.8f, 0.0f, 1.5f),
+    glm::vec3(2.85f, 0.0f, 1.5f),
+    glm::vec3(1.9f, 0.0f, 1.5f),
+    glm::vec3(0.95f, 0.0f, 1.5f),
+    glm::vec3(-3.8f, 0.0f, 1.5f),
+    glm::vec3(-2.85f, 0.0f, 1.5f),
+    glm::vec3(-1.9f, 0.0f, 1.5f),
+    glm::vec3(-0.95f, 0.0f, 1.5f),
+
+    glm::vec3(0.95f, 0.0f, 0.6f),
+    glm::vec3(0.0f, 0.0f, 0.6f),
+    glm::vec3(-0.95f, 0.0f, 0.6f),
+
+    glm::vec3(3.8f, 0.0f, -0.3f),
+    glm::vec3(2.85f, 0.0f, -0.3f),
+    glm::vec3(1.9f, 0.0f, -0.3f),
+    glm::vec3(-3.8f, 0.0f, -0.3f),
+    glm::vec3(-2.85f, 0.0f, -0.3f),
+    glm::vec3(-1.9f, 0.0f, -0.3f),
+
+    glm::vec3(0.95f, 0.0f, -1.2f),
+    glm::vec3(0.0f, 0.0f, -1.2f),
+    glm::vec3(-0.95f, 0.0f, -1.2f),
+
+    glm::vec3(3.8f, 0.0f, -2.15f),
+    glm::vec3(2.85f, 0.0f, -2.15f),
+    glm::vec3(0.95f, 0.0f, -2.15f),
+    glm::vec3(-3.8f, 0.0f, -2.15f),
+    glm::vec3(-2.85f, 0.0f, -2.15f),
+    glm::vec3(-0.95f, 0.0f, -2.15f),
+
+    glm::vec3(3.8f, 0.0f, -3.05f),
+    glm::vec3(2.85f, 0.0f, -3.05f),
+    glm::vec3(1.9f, 0.0f, -3.05f),
+    glm::vec3(0.95f, 0.0f, -3.05f),
+    glm::vec3(0.0f, 0.0f, -3.05f),
+    glm::vec3(-3.8f, 0.0f, -3.05f),
+    glm::vec3(-2.85f, 0.0f, -3.05f),
+    glm::vec3(-1.9f, 0.0f, -3.05f),
+    glm::vec3(-0.95f, 0.0f, -3.05f),
+
+    glm::vec3(3.8f, 0.0f, -4.3f),
+    glm::vec3(2.85f, 0.0f, -4.3f),
+    glm::vec3(1.9f, 0.0f, -4.3f),
+    glm::vec3(0.95f, 0.0f, -4.3f),
+    glm::vec3(-3.8f, 0.0f, -4.3f),
+    glm::vec3(-2.85f, 0.0f, -4.3f),
+    glm::vec3(-1.9f, 0.0f, -4.3f),
+    glm::vec3(-0.95f, 0.0f, -4.3f),
+};
 
 const float pacmanSpeed = 2.0f;
 const float ghostSpeed = 2.0f;
@@ -226,6 +301,16 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
             }
         }
 
+        for (auto it = pointPositions.begin(); it != pointPositions.end(); ) {
+            if (detectCollision(pacmanPosition, *it, detectionDistance)) {
+                // Remove the ball from pointPositions vector
+                it = pointPositions.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+
 }
 
 
@@ -362,6 +447,15 @@ bool checkPacmanGhostCollision() {
     }
     if (detectCollision(pacmanPosition, ghostPositionOrange, detectionDistance)) {
         return true;
+    }
+    return false;
+}
+
+bool checkPacmanPointCollision() {
+    for (const glm::vec3& position : pointPositions) {
+        if (detectCollision(pacmanPosition, position, detectionDistance)) {
+            return true;
+        }
     }
     return false;
 }
