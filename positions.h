@@ -19,5 +19,6 @@ extern glm::vec3 ghostPositionPinkInitial;
 extern glm::vec3 ghostPositionOrangeInitial;
 
 extern std::vector<glm::vec3> pointPositions;
+extern std::vector<glm::vec3> pointPositionsCopy;
 
 #endif

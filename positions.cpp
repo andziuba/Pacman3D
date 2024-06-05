@@ -89,3 +89,5 @@ std::vector<glm::vec3> pointPositions = {
     glm::vec3(-2.85f, 0.0f, -4.3f),
     glm::vec3(-3.8f, 0.0f, -4.3f),
 };
+
+std::vector<glm::vec3> pointPositionsCopy(pointPositions);

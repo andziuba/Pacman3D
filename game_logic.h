@@ -26,6 +26,7 @@ extern const float pacmanSpeed;
 extern float pacmanSpeed_x;
 extern float pacmanSpeed_y;
 extern float detectionDistance;
+extern float pointDetectionDistance;
 extern Direction lastPacmanDirection;
 extern Direction desiredPacmanDirection;
 

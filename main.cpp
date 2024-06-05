@@ -133,6 +133,14 @@ void freeOpenGLProgram(GLFWwindow* window) {
     delete pointModel;
 }
 
+void drawPoint(const glm::mat4& baseMatrix, const glm::vec3& position, ShaderProgram* shaderProgram, Model* model) {
+    glm::mat4 pointMatrix = glm::translate(baseMatrix, position);
+    //pointMatrix = glm::rotate(pointMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); 
+    //pointMatrix = glm::scale(pointMatrix, glm::vec3(0.5f, 0.5f, 0.5f)); 
+    glUniformMatrix4fv(shaderProgram->u("M"), 1, false, glm::value_ptr(pointMatrix));
+    model->draw(shaderProgram);
+}
+
 void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -172,7 +180,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
         updatePacmanPosition(deltaTime, mazeVertices, gameStarted, gameOver);
         updateGhostPositions(deltaTime, mazeVertices);
     }
-    
+
     // Rotacja Pacmana
     float rotationAngle = 0.0f;
     switch (lastPacmanDirection) {
@@ -191,18 +199,14 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     }
 
     // Rysowanie monet
-    for (const auto& position : pointPositions) {
-        glm::mat4 pointM = glm::translate(M, position); 
-        //pointM = glm::rotate(pointM, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); 
-        //pointM = glm::scale(pointM, glm::vec3(0.5f, 0.5f, 0.5f)); 
-        glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pointM));
-        pointModel->draw(sp);
-    }
+        for (const auto& position : pointPositions) {
+            drawPoint(M, position, sp, pointModel);
+        }
 
     // Rysowanie Pacmana
-    glm::mat4 pacmanM = glm::translate(M, pacmanPosition); 
-    pacmanM = glm::rotate(pacmanM, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f)); 
-    pacmanM = glm::scale(pacmanM, glm::vec3(0.15f, 0.15f, 0.15f)); 
+    glm::mat4 pacmanM = glm::translate(M, pacmanPosition);
+    pacmanM = glm::rotate(pacmanM, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    pacmanM = glm::scale(pacmanM, glm::vec3(0.15f, 0.15f, 0.15f));
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pacmanM));
     pacmanModel->draw(sp);
 
@@ -213,7 +217,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     for (int i = 0; i < 4; i++) {
         glm::mat4 ghostM = glm::translate(M, ghostPositions[i]);
         ghostM = glm::rotate(ghostM, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        ghostM = glm::scale(ghostM, glm::vec3(0.3f, 0.3f, 0.3f)); 
+        ghostM = glm::scale(ghostM, glm::vec3(0.3f, 0.3f, 0.3f));
         glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostM));
         ghostModels[i]->draw(sp);
     }
@@ -225,6 +229,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
 
     glfwSwapBuffers(window);
 }
+
 
 
 int main(void) {

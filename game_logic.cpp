@@ -10,6 +10,7 @@ const float pacmanSpeed = 2.0f;
 float pacmanSpeed_x = 0.0f;
 float pacmanSpeed_y = 0.0f;
 float detectionDistance = 0.18f;
+float pointDetectionDistance = 0.2;
 Direction lastPacmanDirection = RIGHT; 
 Direction desiredPacmanDirection = RIGHT; 
 
@@ -60,6 +61,8 @@ void resetGame(bool& gameStarted, bool& gameOver) {
     resetGhosts();
 
     lastPacmanDirection = RIGHT;
+
+    pointPositions = pointPositionsCopy;
 }
 
 void handlePacmanControl(int key, int action) {
@@ -141,7 +144,7 @@ bool checkPacmanGhostCollision() {
 
 bool checkPacmanPointCollision() {
     for (const glm::vec3& position : pointPositions) {
-        if (detectCollision(pacmanPosition, position, detectionDistance)) {
+        if (detectCollision(pacmanPosition, position, pointDetectionDistance)) {
             return true;
         }
     }
