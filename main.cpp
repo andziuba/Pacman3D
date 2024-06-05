@@ -94,13 +94,13 @@ void initOpenGLProgram(GLFWwindow* window) {
     sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
     mazeModel = new Model("resources/models/maze1.obj", "resources/textures/walls.png", 6.0f);
-    mazeFloorModel = new Model("resources/models/maze_floor.obj", "resources/textures/floor.png", 1.0f);
+    mazeFloorModel = new Model("resources/models/maze_floor.obj", "resources/textures/floor2.png", 1.0f);
     pacmanModel = new Model("resources/models/pacman2.obj", "resources/textures/yellow.png", 1.0f);
     ghostModelRed = new Model("resources/models/duszek2.obj", "resources/textures/red.png", 1.0f);
     ghostModelBlue = new Model("resources/models/duszek2.obj", "resources/textures/blue.png", 1.0f);
     ghostModelPink = new Model("resources/models/duszek2.obj", "resources/textures/pink.png", 1.0f);
     ghostModelOrange = new Model("resources/models/duszek2.obj", "resources/textures/orange.png", 1.0f);
-    pointModel = new Model("resources/models/point.obj", "resources/textures/orange.png", 1.0f);
+    pointModel = new Model("resources/models/point.obj", "resources/textures/gold.png", 1.0f);
 
     mazeVertices = mazeModel->getVertices();
 
