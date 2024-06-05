@@ -40,6 +40,8 @@ void resetGhosts() {
 }
 
 void resetGame(bool& gameStarted, bool& gameOver) {
+    system("cls");
+    printf("Game over\n");
     gameStarted = false;
     gameOver = true;
 
@@ -48,6 +50,7 @@ void resetGame(bool& gameStarted, bool& gameOver) {
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+    printf("Press space to start");
     soundEngine->stopAllSounds();
     soundEngine->play2D("resources/audio/pacman_beginning.wav", true);
 
@@ -244,6 +247,8 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
 
         // Check if all coins are eaten
         if (pointPositions.empty()) {
+            system("cls");
+            printf("Win!");
             gameOver = true;
             gameStarted = false;
             soundEngine->stopAllSounds();

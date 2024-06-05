@@ -115,6 +115,9 @@ void initOpenGLProgram(GLFWwindow* window) {
         exit(EXIT_FAILURE);
     }
 
+    system("cls");
+    printf("Controls:\nWASD keys - Pacman movement\nArrow keys - camera movement\n\n");
+    printf("Press space to start");
     soundEngine->play2D("resources/audio/pacman_beginning.wav", true);
 }
 
