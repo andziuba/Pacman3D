@@ -241,6 +241,14 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
                 ++it;
             }
         }
+
+        // Check if all coins are eaten
+        if (pointPositions.empty()) {
+            gameOver = true;
+            gameStarted = false;
+            soundEngine->stopAllSounds();
+            soundEngine->play2D("resources/audio/pacman_win.wav", false); // Play win sound
+        }
 }
 
 Direction getRandomDirection() {
