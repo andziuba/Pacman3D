@@ -13,6 +13,7 @@
 #include <vector>
 #include <irrKlang.h>
 using namespace irrklang;
+
 #include "lodepng.h"
 #include "constants.h"
 #include "shaderprogram.h"
@@ -22,8 +23,9 @@ using namespace irrklang;
 
 float cameraSpeed_x = 0.0f;
 float cameraSpeed_y = 0.0f;
-float aspectRatio = 1.0f;  // Stosunek szerokości do wysokości okna
+float aspectRatio = 1.0f;  // Stosunek szerokosci do wysokosci okna
 
+// Zmienne globalne statusu gry
 extern bool gameStarted = false;
 extern bool gameOver = false;
 
@@ -40,23 +42,22 @@ Model* ghostModelOrange;
 Model* pointModel;
 Model* logoModel;
 
-// Zmienna globalna dla wierzchołków modelu labiryntu
+// Zmienna globalna dla wierzcholkow modelu labiryntu
 std::vector<float> mazeVertices;
 
 // Światło
-glm::vec4 lightPos1 = glm::vec4(5.0f, 10.0f, 5.0f, 1.0f);  // Górne-prawe
-glm::vec4 lightPos2 = glm::vec4(-5.0f, 10.0f, 5.0f, 1.0f); // Górne-lewe
+glm::vec4 lightPos1 = glm::vec4(5.0f, 10.0f, 5.0f, 1.0f);  // Gorne-prawe
+glm::vec4 lightPos2 = glm::vec4(-5.0f, 10.0f, 5.0f, 1.0f); // Gorne-lewe
 glm::vec4 ks = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-// Procedura obsługi błędów
+// Procedura obs;ugi bledow
 void error_callback(int error, const char* description) {
     fputs(description, stderr);
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    // Ruch kamerą za pomocą strzałek
+    // Ruch kamera za pomoca strzalek
     const float cameraSpeed = PI / 2;
-
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_LEFT) cameraSpeed_x = -cameraSpeed;
         if (key == GLFW_KEY_RIGHT) cameraSpeed_x = cameraSpeed;
@@ -66,10 +67,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
             gameStarted = true;
             gameOver = false;
             soundEngine->stopAllSounds();
-            soundEngine->play2D("resources/audio/pacman_chomp.wav", true);
+            soundEngine->play2D("resources/audio/pacman_chomp.wav", true);  // Dzwiek rozgrywki
         }
     }
-
     if (action == GLFW_RELEASE) {
         if (key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT) cameraSpeed_x = 0;
         if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) cameraSpeed_y = 0;
@@ -86,14 +86,16 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 }
 
 void initOpenGLProgram(GLFWwindow* window) {
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0, 0, 0, 1);  // Ustawienie koloru tla
     glEnable(GL_DEPTH_TEST);
     glfwSetWindowSizeCallback(window, windowResizeCallback);
     glfwSetKeyCallback(window, keyCallback);
     srand(static_cast<unsigned int>(time(nullptr)));  // init random
 
+    // Inicjalizacja programgu shaderow
     sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
+    // Ladowanie modeli
     mazeModel = new Model("resources/models/maze1.obj", "resources/textures/walls.png", 6.0f);
     mazeFloorModel = new Model("resources/models/maze_floor.obj", "resources/textures/floor2.png", 1.0f);
     pacmanModel = new Model("resources/models/pacman2.obj", "resources/textures/yellow.png", 1.0f);
@@ -104,13 +106,15 @@ void initOpenGLProgram(GLFWwindow* window) {
     pointModel = new Model("resources/models/point.obj", "resources/textures/gold.png", 1.0f);
     logoModel = new Model("resources/models/logo.obj", "resources/textures/yellow.png", 3.0f);
 
+    // Pobranie wierzchołków modelu labiryntu
     mazeVertices = mazeModel->getVertices();
 
+    // Ustawienie pozycji swiatel
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
 
-    // Init IrrKlang engine
+    // Inicjalizacja silnika dzwieku
     soundEngine = createIrrKlangDevice();
     if (!soundEngine) {
         fprintf(stderr, "Could not initialize IrrKlang engine.\n");
@@ -120,9 +124,10 @@ void initOpenGLProgram(GLFWwindow* window) {
     system("cls");
     printf("Controls:\nWASD keys - Pacman movement\nArrow keys - camera movement\n\n");
     printf("Press space to start");
-    soundEngine->play2D("resources/audio/pacman_beginning.wav", true);
+    soundEngine->play2D("resources/audio/pacman_beginning.wav", true);  // Dzwięk początkowy
 }
 
+// Zwolenienie zasobow
 void freeOpenGLProgram(GLFWwindow* window) {
     delete sp;
     delete mazeModel;
@@ -138,33 +143,34 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 void drawPoint(const glm::mat4& baseMatrix, const glm::vec3& position, ShaderProgram* shaderProgram, Model* model) {
     glm::mat4 pointMatrix = glm::translate(baseMatrix, position);
-    //pointMatrix = glm::rotate(pointMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f)); 
-    //pointMatrix = glm::scale(pointMatrix, glm::vec3(0.5f, 0.5f, 0.5f)); 
     glUniformMatrix4fv(shaderProgram->u("M"), 1, false, glm::value_ptr(pointMatrix));
     model->draw(shaderProgram);
 }
 
 void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Wyczysc bufor koloru i głębokości
 
+    // Macierz widoku
     glm::mat4 V = glm::lookAt(
         glm::vec3(0.0f, 11.0f, 5.0f),
         glm::vec3(0, 0, 0),
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
+    // Macierz pozycji
     glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 50.0f);
 
+    // Macierz modelu
     glm::mat4 M = glm::mat4(1.0f);
     M = glm::rotate(M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
     M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    sp->use();
+    sp->use();  // Aktywacja programu shaderow
     glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
     glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
 
-    // Ustawienie wartości uniformów dla źródeł światła i koloru odbić
+    // Ustawienie wartosci uniformow dla zrodel swiatla i koloru odbic
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
@@ -181,11 +187,12 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeM));
     mazeModel->draw(sp);
 
+    // Rysowanie podlogi
     glm::mat4 mazeFloorM = glm::translate(M, mazeFloorPosition);
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeFloorM));
     mazeFloorModel->draw(sp);
 
-    // Zmiana pozycji Pacmana i duszków
+    // Zmiana pozycji Pacmana i duszkow, jeśli gra jest rozpoczeta i nie zakonczona
     if (gameStarted && !gameOver) {
         updatePacmanPosition(deltaTime, mazeVertices, gameStarted, gameOver);
         updateGhostPositions(deltaTime, mazeVertices);
@@ -209,9 +216,9 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     }
 
     // Rysowanie monet
-        for (const auto& position : pointPositions) {
-            drawPoint(M, position, sp, pointModel);
-        }
+    for (const auto& position : pointPositions) {
+        drawPoint(M, position, sp, pointModel);
+    }
 
     // Rysowanie Pacmana
     glm::mat4 pacmanM = glm::translate(M, pacmanPosition);
@@ -220,7 +227,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pacmanM));
     pacmanModel->draw(sp);
 
-    // Rysowanie duszków
+    // Rysowanie duszkow
     glm::vec3 ghostPositions[] = { ghostPositionRed, ghostPositionBlue, ghostPositionPink, ghostPositionOrange };
     Model* ghostModels[] = { ghostModelRed, ghostModelBlue, ghostModelPink, ghostModelOrange };
 
@@ -232,15 +239,13 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
         ghostModels[i]->draw(sp);
     }
 
-    // Wysłanie do GPU świateł
+    // Wyslanie do GPU swiatel
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
 
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(window);  // Zmiana bufora - wyswietlanie nowej sceny
 }
-
-
 
 int main(void) {
     GLFWwindow* window;
@@ -248,14 +253,14 @@ int main(void) {
     glfwSetErrorCallback(error_callback);
 
     if (!glfwInit()) {
-        fprintf(stderr, "Nie można zainicjować GLFW.\n");
+        fprintf(stderr, "Nie mozna zainicjowac GLFW.\n");
         exit(EXIT_FAILURE);
     }
 
     window = glfwCreateWindow(1000, 1000, "Pacman3D", NULL, NULL);
 
     if (!window) {
-        fprintf(stderr, "Nie można utworzyć okna.\n");
+        fprintf(stderr, "Nie mozna utworzyć okna.\n");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -264,7 +269,7 @@ int main(void) {
     glfwSwapInterval(1);
 
     if (glewInit() != GLEW_OK) {
-        fprintf(stderr, "Nie można zainicjować GLEW.\n");
+        fprintf(stderr, "Nie można zainicjowac GLEW.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -273,7 +278,7 @@ int main(void) {
     float angle_x = 0;
     float angle_y = 0;
 
-    // Główna pętla renderująca
+    // Glowna petla renderująca
     while (!glfwWindowShouldClose(window)) {
         float currentTime = glfwGetTime();
         static float previousTime = currentTime;

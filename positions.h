@@ -9,7 +9,7 @@ extern glm::vec3 mazeFloorPosition;
 
 extern glm::vec3 logoPosition;
 
-// Miejsce na mapie, do którego nie maj¹ dostêpu duszki, po wyjœciu z niego
+// Miejsce na mapie, do ktorego nie maj¹ dostepu duszki, po wyjsciu z niego
 extern const glm::vec3 restrictedZoneMin;
 extern const glm::vec3 restrictedZoneMax;
 

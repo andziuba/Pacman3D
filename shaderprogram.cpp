@@ -19,20 +19,20 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 
 #include "shaderprogram.h"
 
-// Procedura wczytuje plik do tablicy znaków.
+// Procedura wczytuje plik do tablicy znakow.
 char* ShaderProgram::readFile(const char* fileName) {
 	int filesize;
 	FILE* plik;
 	char* result;
 
-#pragma warning(suppress : 4996)  // Wyłączenie błędu w Visual Studio wynikające z nietrzymania się standardów przez Microsoft
+#pragma warning(suppress : 4996)  // Wylaczenie bledu w Visual Studio wynikające z nietrzymania się standardow przez Microsoft
 	plik = fopen(fileName, "rb");
 	if (plik != NULL) {
 		fseek(plik, 0, SEEK_END);
 		filesize = ftell(plik);
 		fseek(plik, 0, SEEK_SET);
 		result = new char[filesize + 1];
-#pragma warning(suppress : 6386)  // Wyłączenie błędu w Visual Studio wynikającego z błędnej analizy statycznej kodu
+#pragma warning(suppress : 6386)  // Wylaczenie bledu w Visual Studio wynikającego z blednej analizy statycznej kodu
 		int readsize = fread(result, 1, filesize, plik);
 		result[filesize] = 0;
 		fclose(plik);
@@ -44,20 +44,20 @@ char* ShaderProgram::readFile(const char* fileName) {
 
 }
 
-// Metoda wczytuje i kompiluje shader, a następnie zwraca jego uchwyt
+// Metoda wczytuje i kompiluje shader, a nastepnie zwraca jego uchwyt
 GLuint ShaderProgram::loadShader(GLenum shaderType, const char* fileName) {
-	//Wygeneruj uchwyt na shader
+	// Wygeneruj uchwyt na shader
 	GLuint shader = glCreateShader(shaderType);  // shaderType to GL_VERTEX_SHADER, GL_GEOMETRY_SHADER lub GL_FRAGMENT_SHADER
-	// Wczytaj plik ze źródłem shadera do tablicy znaków
+	// Wczytaj plik ze zrodlem shadera do tablicy znakow
 	const GLchar* shaderSource = readFile(fileName);
-	// Powiąż źródło z uchwytem shadera
+	// Powiaz zrodlo z uchwytem shadera
 	glShaderSource(shader, 1, &shaderSource, NULL);
-	// Skompiluj źródło
+	// Skompiluj zrodlo
 	glCompileShader(shader);
-	// Usuń źródło shadera z pamięci (nie będzie już potrzebne)
+	// Usun zrodlo shadera z pamieci (nie bedzie juz potrzebne)
 	delete[]shaderSource;
 
-	// Pobierz log błędów kompilacji i wyświetl
+	// Pobierz log bledow kompilacji i wyswietl
 	int infologLength = 0;
 	int charsWritten = 0;
 	char* infoLog;
@@ -71,7 +71,7 @@ GLuint ShaderProgram::loadShader(GLenum shaderType, const char* fileName) {
 		delete[]infoLog;
 	}
 
-	// Zwróć uchwyt wygenerowanego shadera
+	// Zwroc uchwyt wygenerowanego shadera
 	return shader;
 }
 
@@ -93,16 +93,16 @@ ShaderProgram::ShaderProgram(const char* vertexShaderFile, const char* geometryS
 	printf("Loading fragment shader...\n");
 	fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentShaderFile);
 
-	// Wygeneruj uchwyt programu cieniującego
+	// Wygeneruj uchwyt programu cieniujacego
 	shaderProgram = glCreateProgram();
 
-	// Podłącz do niego shadery i zlinkuj program
+	// Podlacz do niego shadery i zlinkuj program
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	if (geometryShaderFile != NULL) glAttachShader(shaderProgram, geometryShader);
 	glLinkProgram(shaderProgram);
 
-	// Pobierz log błędów linkowania i wyświetl
+	// Pobierz log bledow linkowania i wyswietl
 	int infologLength = 0;
 	int charsWritten = 0;
 	char* infoLog;
@@ -120,7 +120,7 @@ ShaderProgram::ShaderProgram(const char* vertexShaderFile, const char* geometryS
 }
 
 ShaderProgram::~ShaderProgram() {
-	// Odłącz shadery od programu
+	// Odlacz shadery od programu
 	glDetachShader(shaderProgram, vertexShader);
 	if (geometryShader != 0) glDetachShader(shaderProgram, geometryShader);
 	glDetachShader(shaderProgram, fragmentShader);
@@ -134,7 +134,7 @@ ShaderProgram::~ShaderProgram() {
 	glDeleteProgram(shaderProgram);
 }
 
-// Włącz używanie programu cieniującego reprezentowanego przez aktualny obiekt
+// Wlacz uzywanie programu cieniujacego reprezentowanego przez aktualny obiekt
 void ShaderProgram::use() {
 	glUseProgram(shaderProgram);
 }
@@ -144,7 +144,7 @@ GLuint ShaderProgram::u(const char* variableName) {
 	return glGetUniformLocation(shaderProgram, variableName);
 }
 
-// Pobierz numer slotu odpowiadającego atrybutowi o nazwie variableName
+// Pobierz numer slotu odpowiadajacego atrybutowi o nazwie variableName
 GLuint ShaderProgram::a(const char* variableName) {
 	return glGetAttribLocation(shaderProgram, variableName);
 }

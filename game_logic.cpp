@@ -23,11 +23,13 @@ const float ghostSpeed = 2.0f;
 float ghostDetectionDistance = 0.3f;
 GhostState ghostStates[4] = { NORMAL, PREAPARING, PREAPARING, PREAPARING }; // red, blue, pink, orange
 
+// Zatrzymanie ruchu Pacmana
 void stopPacman() {
     pacmanSpeed_x = 0.0f;
     pacmanSpeed_y = 0.0f;
 }
 
+// Resetuje pozycje duszkow
 void resetGhosts() {
     ghostPositionRed = ghostPositionRedInitial;
     ghostPositionBlue = ghostPositionBlueInitial;
@@ -41,27 +43,28 @@ void resetGhosts() {
 }
 
 void resetGame(bool& gameStarted, bool& gameOver) {
+    // Komunikat o koncu gry
     system("cls");
     printf("Game over\n");
     gameStarted = false;
     gameOver = true;
 
+    // Dzwiek przegranej
     soundEngine->stopAllSounds();
-    soundEngine->play2D("resources/audio/pacman_death.wav", false);
+    soundEngine->play2D("resources/audio/pacman_death.wav", false);  
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+    // Komunikat o rozpoczeciu nowej gry
     printf("Press space to start");
     soundEngine->stopAllSounds();
-    soundEngine->play2D("resources/audio/pacman_beginning.wav", true);
+    soundEngine->play2D("resources/audio/pacman_beginning.wav", true);  // Dzwiek poczatkowy
 
+    // Przywrocenie pozycji
     pacmanPosition = pacmanPositionInitial;
-
     stopPacman();
     resetGhosts();
-
     lastPacmanDirection = RIGHT;
-
     pointPositions = pointPositionsCopy;
 }
 
@@ -84,48 +87,61 @@ void handlePacmanControl(int key, int action) {
     }
 }
 
+// Sprawdza czy punkt p lezy wewnatrz trojkata okreslonego przez punkty a, b i c
+// Jesli tak, zwraca wspolrzedne barycentryczne (u, v) punktu p w trojkacie 
 bool isPointInTriangle(glm::vec2 p, glm::vec2 a, glm::vec2 b, glm::vec2 c, float& u, float& v) {
+    // Wektory od punktow
     glm::vec2 v0 = b - a;
     glm::vec2 v1 = c - a;
     glm::vec2 v2 = p - a;
 
+    // Obliczenie iloczynow skalarnych
     float d00 = glm::dot(v0, v0);
     float d01 = glm::dot(v0, v1);
     float d11 = glm::dot(v1, v1);
     float d20 = glm::dot(v2, v0);
     float d21 = glm::dot(v2, v1);
+
+    // Obliczenie wyznacznika
     float denom = d00 * d11 - d01 * d01;
 
     if (denom == 0.0f) {
-        return false; // trójk¹t zdegenerowany
+        return false; // trojkat zdegenerowany
     }
 
+    // Obliczenie wspolrzednych barycentrycznych
     u = (d11 * d20 - d01 * d21) / denom;
     v = (d00 * d21 - d01 * d20) / denom;
     float w = 1.0f - u - v;
 
+    // Sprawdzenie czy punkt lezy wewnatrz trojkata
     return (u >= 0.0f) && (v >= 0.0f) && (w >= 0.0f);
 }
 
 bool checkWallCollision(const glm::vec3& position, const std::vector<float>& mazeVertices) {
+    // Przechodzenie przez wierzcholki labiryntu w krokach po 9 (3 wierzcholki - 9 liczb)
     for (size_t i = 0; i < mazeVertices.size(); i += 9) {
+        // Pobranie trzech wierzcholkow trojkata
         glm::vec3 v0(mazeVertices[i], mazeVertices[i + 1], mazeVertices[i + 2]);
         glm::vec3 v1(mazeVertices[i + 3], mazeVertices[i + 4], mazeVertices[i + 5]);
         glm::vec3 v2(mazeVertices[i + 6], mazeVertices[i + 7], mazeVertices[i + 8]);
 
+        // Sprawdzenie czy punkt znajduje siê wewnatrz trojkata
         float u, v;
         if (isPointInTriangle(glm::vec2(position.x, position.z), glm::vec2(v0.x, v0.z), glm::vec2(v1.x, v1.z), glm::vec2(v2.x, v2.z), u, v)) {
-            return true; // kolizja
+            return true; // Kolizja ze sciana
         }
     }
-    return false; // brak kolizji
+    return false; // Brak kolizji
 }
 
+// Sprawdza, czy dwie pozycje koliduja, porownujac odleg³osc euklidesowa z collisionDistance
 bool detectCollision(glm::vec3 position1, glm::vec3 position2, float collisionDistance) {
     float distance = glm::distance(position1, position2);
     return distance < collisionDistance;
 }
 
+// Sprawdza kolizje pomiedzy Pacmanem i ktorymkolwiek z duszkow
 bool checkPacmanGhostCollision() {
     if (detectCollision(pacmanPosition, ghostPositionRed, detectionDistance)) {
         return true;
@@ -142,6 +158,7 @@ bool checkPacmanGhostCollision() {
     return false;
 }
 
+// Sprawdza kolizje pomiedzy Pacmanem i monetami
 bool checkPacmanPointCollision() {
     for (const glm::vec3& position : pointPositions) {
         if (detectCollision(pacmanPosition, position, pointDetectionDistance)) {
@@ -152,10 +169,10 @@ bool checkPacmanPointCollision() {
 }
 
 void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertices, bool& gameStarted, bool& gameOver) {
-        if (pacmanPosition.x > 4.5f) {  // przejœcie na drug¹ stronê 
+        if (pacmanPosition.x > 4.5f) {  // Przejscie na druga strone labiryntu
             pacmanPosition.x = -4.3f;
         }
-        else if (pacmanPosition.x < -4.5f) {  // przejœcie na drug¹ stronê
+        else if (pacmanPosition.x < -4.5f) {  // Przejscie na druga strone labiryntu
             pacmanPosition.x = 4.3f;
         }
         else {
@@ -163,7 +180,7 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
             float newSpeed_x = 0.0f;
             float newSpeed_y = 0.0f;
 
-            // Set potential new speed based on the desired direction
+            // Ustawia potencjalna nowa predkosc, na podstawie pozadanego nowego kierunku
             switch (desiredPacmanDirection) {
             case UP:
                 newSpeed_y = -pacmanSpeed;
@@ -179,17 +196,17 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
                 break;
             }
 
-            // Calculate potential new position
+            // Oblicza potencjalna nowa pozycje
             potentialPosition += glm::vec3(newSpeed_x * deltaTime, 0.0f, newSpeed_y * deltaTime);
 
-            // Check for collision in the desired direction using detectionDistance
+            // Sprawdza kolizje w pozadanym kierunku, uzywajac detectionDistance
             glm::vec3 detectionPosition = pacmanPosition + glm::vec3(newSpeed_x * detectionDistance, 0.0f, newSpeed_y * detectionDistance);
-            if (!checkWallCollision(detectionPosition, mazeVertices)) {
-                if (checkPacmanGhostCollision()) {
-                    resetGame(gameStarted, gameOver);
+            if (!checkWallCollision(detectionPosition, mazeVertices)) {  // Sprawdza kolizje ze sciana
+                if (checkPacmanGhostCollision()) {  // Sprawdza kolizje z duszkami
+                    resetGame(gameStarted, gameOver); 
                 }
                 else {
-                    // If no collision, update Pacman's position and speed
+                    // Jesli nie ma kolizji, aktualizuje pozycje Pacmana
                     pacmanPosition = potentialPosition;
                     pacmanSpeed_x = newSpeed_x;
                     pacmanSpeed_y = newSpeed_y;
@@ -197,7 +214,7 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
                 }
             }
             else {
-                // If there's a collision, try to continue in the last valid direction
+                // Jesli wystapi kolizcja, probuje kontynuowac ruch w poprzednim prawidlowym kierunku
                 potentialPosition = pacmanPosition;
                 newSpeed_x = 0.0f;
                 newSpeed_y = 0.0f;
@@ -217,11 +234,11 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
                     break;
                 }
 
-                // Check for collision in the last valid direction using detectionDistance
+                // Sprawdza kolizje w ostatnim prawidlowym kierunku
                 detectionPosition = pacmanPosition + glm::vec3(newSpeed_x * detectionDistance, 0.0f, newSpeed_y * detectionDistance);
                 potentialPosition = pacmanPosition + glm::vec3(newSpeed_x * deltaTime, 0.0f, newSpeed_y * deltaTime);
                 if (!checkWallCollision(detectionPosition, mazeVertices)) {
-                    // If no collision, update Pacman's position and continue in the last valid direction
+                    // Jesli nie ma kolizji, kontynuje poprzedni ruch
                     if (checkPacmanGhostCollision()) {
                         resetGame(gameStarted, gameOver);
                     }
@@ -232,30 +249,30 @@ void updatePacmanPosition(float deltaTime, const std::vector<float>& mazeVertice
                     }
                 }
                 else {
-                    // If there's a collision in the last valid direction as well, stop Pacman
+                    // Jesli w poprzednim prawid³owym kierunku takze nastepuje kolizja, Pacman jest zatrzymywany
                     stopPacman();
                 }
             }
         }
 
-        // Jeœli wykryto kolizjê Pacmana z monet¹, model monety jest usuwany
+        // Jesli wykryto kolizje Pacmana z moneta, model monety jest usuwany
         for (auto it = pointPositions.begin(); it != pointPositions.end(); ) {
             if (detectCollision(pacmanPosition, *it, detectionDistance)) {
-                it = pointPositions.erase(it);  // usuñ monetê z wektora
+                it = pointPositions.erase(it);  // Usun monete z wektora
             }
             else {
                 ++it;
             }
         }
 
-        // Check if all coins are eaten
+        // Sprawdza czy wszystkie monety zosta³y usuniete
         if (pointPositions.empty()) {
             system("cls");
             printf("Win!");
             gameOver = true;
             gameStarted = false;
             soundEngine->stopAllSounds();
-            soundEngine->play2D("resources/audio/pacman_win.wav", false); // Play win sound
+            soundEngine->play2D("resources/audio/pacman_win.wav", false); // Dzwiek wygranej
         }
 }
 
@@ -299,19 +316,19 @@ void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, 
     glm::vec3 directionVector = getDirectionVector(currentDirection);
     glm::vec3 potentialPosition = ghostPosition + directionVector * ghostSpeed * deltaTime;
 
-    // Check for collisions in the desired direction using detectionDistance
+    // Sprawdza kolizje w pozadanym kierunku przy uzyciu ghostDetectionDistance
     glm::vec3 detectionPosition = ghostPosition + directionVector * ghostDetectionDistance;
 
-    // Check if the potential position is in the restricted zone
+    // Sprawdza, czy potencjalna pozycja znajduje siê w strefie ograniczonej dla duszkow
     if (!checkWallCollision(detectionPosition, mazeVertices) && !isInRestrictedZone(potentialPosition)) {
         ghostPosition = potentialPosition;
     }
     else {
-        // If a collision occurs or the ghost is trying to enter the restricted zone, choose a new random direction
+        // Jesli wystapi kolizja lub duch probuje wejsc w strefe ograniczona, wybiera nowy losowy kierunek
         currentDirection = getRandomDirection();
     }
 
-    // Wrap around the maze
+    // Przechodzenie na druga strone labiryntu
     if (ghostPosition.x > 4.5f) {
         ghostPosition.x = -4.3f;
     }
@@ -326,14 +343,14 @@ void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertice
     static Direction currentDirectionPink = getRandomDirection();
     static Direction currentDirectionOrange = getRandomDirection();
 
-    // Red ghost
+    // Czerwony duszek
     updateGhostPosition(ghostPositionRed, currentDirectionRed, mazeVertices, deltaTime);
 
-    // At the beginning of the game (PREAPARING), move blue, pink and orange ghosts
+    // Na poczatku gry (tryb PREAPATING duszkow), przesuniecie niebieskiego, rozowego i pomaranczowego duszka
 
     if (ghostStates[1] == PREAPARING) {
         updateGhostTransition(ghostPositionBlue, ghostPositionRedInitial, deltaTime);
-        if (ghostPositionBlue == ghostPositionRedInitial) {
+        if (ghostPositionBlue == ghostPositionRedInitial) {  // Przesuniecie na pozycje czerwonego duszka
             ghostStates[1] = NORMAL;
         }
     }

@@ -56,5 +56,4 @@ bool isInRestrictedZone(const glm::vec3& position);
 void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, const std::vector<float>& mazeVertices, float deltaTime);
 void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices);
 
-
-#endif // GAME_LOGIC_H
+#endif

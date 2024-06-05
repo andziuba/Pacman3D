@@ -1,22 +1,35 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include <vector>
 #include <glm/glm.hpp>
-#include <GL/glew.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
+#include "lodepng.h"
 #include "shaderprogram.h"
+
+// Struktura do przechowywania indeksow wierzcholkow dla pozycji (v), tekstury (vt), normalnych (vn)
+struct Vertex {
+    unsigned int v, vt, vn;
+};
+
+bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<float>& normals, std::vector<float>& texCoords, float tilingFactor);
 
 class Model {
 public:
-    std::vector<float> vertices, normals, texCoords;
-    GLuint texture;
-    int vertexCount;
+    std::vector<float> vertices;  // Wierzcholki
+    std::vector<float> normals;   // Normalne
+    std::vector<float> texCoords; // Wspolrzêdne tekstury
+    GLuint texture;               // Tekstura modelu
+    int vertexCount;              // Liczba wierzcholkow
 
     Model(const char* objFilename, const char* textureFilename, float tilingFactor);
     void loadTexture(const char* filename);
     void draw(ShaderProgram* sp);
 
-    // Getter for vertices
+    // Getter dla wierzcholkow
     const std::vector<float>& getVertices() const { return vertices; }
 
 private:
@@ -24,7 +37,5 @@ private:
     float* normalsArray;
     float* texCoordsArray;
 };
-
-bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<float>& normals, std::vector<float>& texCoords, float tilingFactor);
 
 #endif 
