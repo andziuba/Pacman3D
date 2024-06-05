@@ -12,7 +12,7 @@ public:
     GLuint texture;
     int vertexCount;
 
-    Model(const char* objFilename, const char* textureFilename);
+    Model(const char* objFilename, const char* textureFilename, float tilingFactor);
     void loadTexture(const char* filename);
     void draw(ShaderProgram* sp);
 
@@ -25,6 +25,6 @@ private:
     float* texCoordsArray;
 };
 
-bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<float>& normals, std::vector<float>& texCoords);
+bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<float>& normals, std::vector<float>& texCoords, float tilingFactor);
 
 #endif 

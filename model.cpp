@@ -11,7 +11,7 @@ struct Vertex {
     unsigned int v, vt, vn;
 };
 
-bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<float>& normals, std::vector<float>& texCoords) {
+bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<float>& normals, std::vector<float>& texCoords, float tilingFactor) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Error: Cannot open file: " << filename << std::endl;
@@ -74,7 +74,7 @@ bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<flo
 
     // Calculate the center of the bounding box
     glm::vec3 center = (minVertex + maxVertex) * 0.5f;
-
+    
     for (const Vertex& vertexIndex : vertexIndices) {
         glm::vec3 vertex = temp_vertices[vertexIndex.v] - center; // Center the vertex
         vertices.push_back(vertex.x);
@@ -89,7 +89,7 @@ bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<flo
         }
 
         if (!temp_texCoords.empty()) {
-            glm::vec2 texCoord = temp_texCoords[vertexIndex.vt];
+            glm::vec2 texCoord = temp_texCoords[vertexIndex.vt] * tilingFactor; // Scale the texture coordinates
             texCoords.push_back(texCoord.x);
             texCoords.push_back(texCoord.y);
         }
@@ -99,8 +99,8 @@ bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<flo
     return true;
 }
 
-Model::Model(const char* objFilename, const char* textureFilename) {
-    if (!loadOBJ(objFilename, vertices, normals, texCoords)) {
+Model::Model(const char* objFilename, const char* textureFilename, float tilingFactor) {
+    if (!loadOBJ(objFilename, vertices, normals, texCoords, tilingFactor)) {
         fprintf(stderr, "Error: Failed to load OBJ file: %s.\n", objFilename);
         exit(EXIT_FAILURE);
     }
@@ -127,10 +127,13 @@ void Model::loadTexture(const char* filename) {
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 void Model::draw(ShaderProgram* sp) {
