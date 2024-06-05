@@ -3,6 +3,8 @@
 glm::vec3 mazePosition = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 mazeFloorPosition = glm::vec3(0.0f, -0.5f, 0.0f);
 
+glm::vec3 logoPosition = glm::vec3(0.0f, -0.5f, -7.0f);
+
 // Miejsce na mapie, do którego nie maj¹ dostêpu duszki, po wyjœciu z niego
 const glm::vec3 restrictedZoneMin(-1.0f, 0.0f, -1.0f);
 const glm::vec3 restrictedZoneMax(1.0f, 0.0f, 0.3f);

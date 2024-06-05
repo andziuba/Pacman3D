@@ -38,6 +38,7 @@ Model* ghostModelBlue;
 Model* ghostModelPink;
 Model* ghostModelOrange;
 Model* pointModel;
+Model* logoModel;
 
 // Zmienna globalna dla wierzchołków modelu labiryntu
 std::vector<float> mazeVertices;
@@ -101,6 +102,7 @@ void initOpenGLProgram(GLFWwindow* window) {
     ghostModelPink = new Model("resources/models/duszek2.obj", "resources/textures/pink.png", 1.0f);
     ghostModelOrange = new Model("resources/models/duszek2.obj", "resources/textures/orange.png", 1.0f);
     pointModel = new Model("resources/models/point.obj", "resources/textures/gold.png", 1.0f);
+    logoModel = new Model("resources/models/logo.obj", "resources/textures/yellow.png", 3.0f);
 
     mazeVertices = mazeModel->getVertices();
 
@@ -131,6 +133,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
     delete ghostModelPink;
     delete ghostModelOrange;
     delete pointModel;
+    delete logoModel;
 }
 
 void drawPoint(const glm::mat4& baseMatrix, const glm::vec3& position, ShaderProgram* shaderProgram, Model* model) {
@@ -165,6 +168,13 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
     glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
     glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
+
+    // Rysowanie loga
+    glm::mat4 logoM = glm::translate(M, logoPosition);
+    logoM = glm::rotate(logoM, glm::radians(270.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    logoM = glm::scale(logoM, glm::vec3(0.2f, 0.2f, 0.2f));
+    glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(logoM));
+    logoModel->draw(sp);
 
     // Rysowanie labiryntu
     glm::mat4 mazeM = glm::translate(M, mazePosition);
