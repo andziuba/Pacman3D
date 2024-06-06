@@ -46,8 +46,8 @@ Model* logoModel;
 std::vector<float> mazeVertices;
 
 // Światło
-glm::vec4 lightPos1 = glm::vec4(5.0f, 10.0f, 5.0f, 1.0f);  // Gorne-prawe
-glm::vec4 lightPos2 = glm::vec4(-5.0f, 10.0f, 5.0f, 1.0f); // Gorne-lewe
+glm::vec4 lightPos1 = glm::vec4(5.0f, 20.0f, -3.0f, 2.0f);  // Gorne-prawe
+glm::vec4 lightPos2 = glm::vec4(-5.0f, 20.0f, -3.0f, 2.0f); // Gorne-lewe
 glm::vec4 ks = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 // Procedura obs;ugi bledow
