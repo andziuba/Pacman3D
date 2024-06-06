@@ -102,7 +102,7 @@ bool loadOBJ(const char* filename, std::vector<float>& vertices, std::vector<flo
     return true;
 }
 
-Model::Model(const char* objFilename, const char* textureFilename, float tilingFactor) {
+Model::Model(const char* objFilename, float tilingFactor) {
     if (!loadOBJ(objFilename, vertices, normals, texCoords, tilingFactor)) {
         fprintf(stderr, "Error: Failed to load OBJ file: %s.\n", objFilename);
         exit(EXIT_FAILURE);
@@ -112,36 +112,9 @@ Model::Model(const char* objFilename, const char* textureFilename, float tilingF
     verticesArray = vertices.data();
     normalsArray = normals.data();
     texCoordsArray = texCoords.data();
-
-    loadTexture(textureFilename);
 }
 
-void Model::loadTexture(const char* filename) {
-    glActiveTexture(GL_TEXTURE0);
-
-    std::vector<unsigned char> image;
-    unsigned width, height;
-    unsigned error = lodepng::decode(image, width, height, filename);
-
-    if (error != 0) {
-        fprintf(stderr, "Error: Failed to load texture: %s: %s\n", filename, lodepng_error_text(error));
-        exit(EXIT_FAILURE);
-    }
-
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void Model::draw(ShaderProgram* sp) {
+void Model::draw(ShaderProgram* sp, GLuint texture) {
     glEnableVertexAttribArray(sp->a("vertex"));
     glVertexAttribPointer(sp->a("vertex"), 3, GL_FLOAT, GL_FALSE, 0, verticesArray);
 

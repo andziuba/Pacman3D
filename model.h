@@ -25,9 +25,8 @@ public:
     GLuint texture;               // Tekstura modelu
     int vertexCount;              // Liczba wierzcholkow
 
-    Model(const char* objFilename, const char* textureFilename, float tilingFactor);
-    void loadTexture(const char* filename);
-    void draw(ShaderProgram* sp);
+    Model(const char* objFilename, float tilingFactor);
+    void draw(ShaderProgram* sp, GLuint texture);
 
     // Getter dla wierzcholkow
     const std::vector<float>& getVertices() const { return vertices; }

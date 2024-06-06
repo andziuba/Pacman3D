@@ -45,22 +45,22 @@ Model* logoModel;
 // Zmienna globalna dla wierzcholkow modelu labiryntu
 std::vector<float> mazeVertices;
 
-// Światło
-glm::vec4 lightPos1 = glm::vec4(5.0f, 20.0f, -3.0f, 2.0f);  // Gorne-prawe
-glm::vec4 lightPos2 = glm::vec4(-5.0f, 20.0f, -3.0f, 2.0f); // Gorne-lewe
+// Swiatło
+glm::vec4 lightPos1 = glm::vec4(5.0f, 10.0f, 5.0f, 1.0f);  // Gorne-prawe
+glm::vec4 lightPos2 = glm::vec4(-5.0f, 10.0f, 5.0f, 1.0f); // Gorne-lewe
 glm::vec4 ks = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
+// Uchwyty tekstur
+GLuint texWalls;
+GLuint texFloor;
+GLuint texYellow;
+GLuint texRed;
+GLuint texBlue;
+GLuint texPink;
+GLuint texOrange;
+GLuint texGold;
 
-GLuint tex0;
-GLuint tex1;
-GLuint tex2;
-GLuint tex3;
-GLuint tex4;
-GLuint tex5;
-GLuint tex6;
-GLuint tex7;
-
-// Procedura obs;ugi bledow
+// Procedura obslugi bledow
 void error_callback(int error, const char* description) {
     fputs(description, stderr);
 }
@@ -100,10 +100,10 @@ GLuint readTexture(const char* filename) {
     GLuint tex;
     glActiveTexture(GL_TEXTURE0);
 
-    //Wczytanie do pamięci komputera
-    std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
-    unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
-    //Wczytaj obrazek
+    // Wczytanie do pamięci komputera
+    std::vector<unsigned char> image;  // Alokuj wektor do wczytania obrazka
+    unsigned width, height;  // Zmienne do ktorych wczytamy wymiary obrazka
+    // Wczytaj obrazek
     unsigned error = lodepng::decode(image, width, height, filename);
 
     if (error != 0) {
@@ -111,12 +111,11 @@ GLuint readTexture(const char* filename) {
         exit(EXIT_FAILURE);
     }
 
-    //Import do pamięci karty graficznej
-    glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
-    glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
-    //Wczytaj obrazek do pamięci KG skojarzonej z uchwytem
-    glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
-        GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
+    // Import do pamieci karty graficznej
+    glGenTextures(1, &tex);  // Zainicjuj jeden uchwyt
+    glBindTexture(GL_TEXTURE_2D, tex); // Uaktywnij uchwyt
+    // Wczytaj obrazek do pamieci KG skojarzonej z uchwytem
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -136,47 +135,28 @@ void initOpenGLProgram(GLFWwindow* window) {
     sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 
     // Ladowanie modeli
-    mazeModel = new Model("resources/models/maze1.obj", "resources/textures/walls.png", 6.0f);
-    mazeFloorModel = new Model("resources/models/maze_floor.obj", "resources/textures/floor2.png", 1.0f);
-    pacmanModel = new Model("resources/models/pacman2.obj", "resources/textures/yellow.png", 1.0f);
-    ghostModelRed = new Model("resources/models/duszek2.obj", "resources/textures/red.png", 1.0f);
-    ghostModelBlue = new Model("resources/models/duszek2.obj", "resources/textures/blue.png", 1.0f);
-    ghostModelPink = new Model("resources/models/duszek2.obj", "resources/textures/pink.png", 1.0f);
-    ghostModelOrange = new Model("resources/models/duszek2.obj", "resources/textures/orange.png", 1.0f);
-    pointModel = new Model("resources/models/point.obj", "resources/textures/gold.png", 1.0f);
-    logoModel = new Model("resources/models/logo.obj", "resources/textures/yellow.png", 3.0f);
+    mazeModel = new Model("resources/models/maze1.obj", 6.0f);
+    mazeFloorModel = new Model("resources/models/maze_floor.obj", 1.0f);
+    pacmanModel = new Model("resources/models/pacman2.obj", 1.0f);
+    ghostModelRed = new Model("resources/models/duszek2.obj", 1.0f);
+    ghostModelBlue = new Model("resources/models/duszek2.obj", 1.0f);
+    ghostModelPink = new Model("resources/models/duszek2.obj", 1.0f);
+    ghostModelOrange = new Model("resources/models/duszek2.obj", 1.0f);
+    pointModel = new Model("resources/models/point.obj", 1.0f);
+    logoModel = new Model("resources/models/logo.obj", 3.0f);
 
-    //////
-    tex0 = readTexture("resources/textures/walls.png");
-    tex1 = readTexture("resources/textures/floor2.png");
-    tex2 = readTexture("resources/textures/yellow.png");
-    tex3 = readTexture("resources/textures/red.png");
-    tex4 = readTexture("resources/textures/blue.png");
-    tex5 = readTexture("resources/textures/pink.png");
-    tex6 = readTexture("resources/textures/orange.png");
-    tex7 = readTexture("resources/textures/gold.png");
-
-    /*
-    GLuint tex1 = readTexture("resources/textures/floor.png");
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, tex1);
-    glUniform1i(sp->u("textureMap1"), 0);
-
-    GLuint tex2 = readTexture("resources/textures/walls.png");
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex0);
-    glUniform1i(sp->u("textureMap0"), 0);
-    */
+    // Ladowanie tekstur
+    texWalls = readTexture("resources/textures/walls.png");
+    texFloor = readTexture("resources/textures/floor2.png");
+    texYellow = readTexture("resources/textures/yellow.png");
+    texRed = readTexture("resources/textures/red.png");
+    texBlue = readTexture("resources/textures/blue.png");
+    texPink = readTexture("resources/textures/pink.png");
+    texOrange = readTexture("resources/textures/orange.png");
+    texGold = readTexture("resources/textures/gold.png");
 
     // Pobranie wierzchołków modelu labiryntu
     mazeVertices = mazeModel->getVertices();
-
-    // Ustawienie pozycji swiatel
-    //(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
-    //glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
-    //glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
-
-
 
     // Inicjalizacja silnika dzwieku
     soundEngine = createIrrKlangDevice();
@@ -188,7 +168,7 @@ void initOpenGLProgram(GLFWwindow* window) {
     system("cls");
     printf("Controls:\nWASD keys - Pacman movement\nArrow keys - camera movement\n\n");
     printf("Press space to start");
-    soundEngine->play2D("resources/audio/pacman_beginning.wav", true);  // Dzwięk początkowy
+    soundEngine->play2D("resources/audio/pacman_beginning.wav", true);  // Dzwięk poczatkowy
 }
 
 // Zwolenienie zasobow
@@ -208,11 +188,11 @@ void freeOpenGLProgram(GLFWwindow* window) {
 void drawPoint(const glm::mat4& baseMatrix, const glm::vec3& position, ShaderProgram* shaderProgram, Model* model) {
     glm::mat4 pointMatrix = glm::translate(baseMatrix, position);
     glUniformMatrix4fv(shaderProgram->u("M"), 1, false, glm::value_ptr(pointMatrix));
-    model->draw(shaderProgram);
+    model->draw(shaderProgram, texGold);
 }
 
 void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Wyczysc bufor koloru i głębokości
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Wyczysc bufor koloru i glebokosci
 
     // Macierz widoku
     glm::mat4 V = glm::lookAt(
@@ -236,58 +216,52 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
 
     glUniform1i(sp->u("textureMap0"), 0);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex0);
+    glBindTexture(GL_TEXTURE_2D, texWalls);
 
     glUniform1i(sp->u("textureMap1"), 0);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, tex1);
+    glBindTexture(GL_TEXTURE_2D, texFloor);
 
     glUniform1i(sp->u("textureMap2"), 0);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, tex2);
+    glBindTexture(GL_TEXTURE_2D, texYellow);
 
     glUniform1i(sp->u("textureMap3"), 0);
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, tex3);
+    glBindTexture(GL_TEXTURE_2D, texRed);
 
     glUniform1i(sp->u("textureMap4"), 0);
     glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, tex4);
+    glBindTexture(GL_TEXTURE_2D, texBlue);
 
     glUniform1i(sp->u("textureMap5"), 0);
     glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, tex5);
+    glBindTexture(GL_TEXTURE_2D, texPink);
 
     glUniform1i(sp->u("textureMap6"), 0);
     glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, tex6);
+    glBindTexture(GL_TEXTURE_2D, texOrange);
 
     glUniform1i(sp->u("textureMap7"), 0);
     glActiveTexture(GL_TEXTURE7);
-    glBindTexture(GL_TEXTURE_2D, tex7);
-
-
-    // Ustawienie wartosci uniformow dla zrodel swiatla i koloru odbic
-    //glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
-    //glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
-    //glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
+    glBindTexture(GL_TEXTURE_2D, texGold);
 
     // Rysowanie loga
     glm::mat4 logoM = glm::translate(M, logoPosition);
     logoM = glm::rotate(logoM, glm::radians(270.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     logoM = glm::scale(logoM, glm::vec3(0.2f, 0.2f, 0.2f));
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(logoM));
-    logoModel->draw(sp);
+    logoModel->draw(sp, texYellow);
 
     // Rysowanie labiryntu
     glm::mat4 mazeM = glm::translate(M, mazePosition);
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeM));
-    mazeModel->draw(sp);
+    mazeModel->draw(sp, texWalls);
 
     // Rysowanie podlogi
     glm::mat4 mazeFloorM = glm::translate(M, mazeFloorPosition);
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(mazeFloorM));
-    mazeFloorModel->draw(sp);
+    mazeFloorModel->draw(sp, texFloor);
 
     // Zmiana pozycji Pacmana i duszkow, jeśli gra jest rozpoczeta i nie zakonczona
     if (gameStarted && !gameOver) {
@@ -322,24 +296,20 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     pacmanM = glm::rotate(pacmanM, glm::radians(rotationAngle), glm::vec3(0.0f, 1.0f, 0.0f));
     pacmanM = glm::scale(pacmanM, glm::vec3(0.15f, 0.15f, 0.15f));
     glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(pacmanM));
-    pacmanModel->draw(sp);
+    pacmanModel->draw(sp, texYellow);
 
     // Rysowanie duszkow
     glm::vec3 ghostPositions[] = { ghostPositionRed, ghostPositionBlue, ghostPositionPink, ghostPositionOrange };
     Model* ghostModels[] = { ghostModelRed, ghostModelBlue, ghostModelPink, ghostModelOrange };
+    GLuint ghostTextures[] = { texRed, texBlue, texPink, texOrange };
 
     for (int i = 0; i < 4; i++) {
         glm::mat4 ghostM = glm::translate(M, ghostPositions[i]);
         ghostM = glm::rotate(ghostM, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         ghostM = glm::scale(ghostM, glm::vec3(0.3f, 0.3f, 0.3f));
         glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(ghostM));
-        ghostModels[i]->draw(sp);
+        ghostModels[i]->draw(sp, ghostTextures[i]);
     }
-
-    // Wyslanie do GPU swiatel
-    //glUniform4fv(sp->u("lp1"), 1, glm::value_ptr(lightPos1));
-    //glUniform4fv(sp->u("lp2"), 1, glm::value_ptr(lightPos2));
-    //glUniform4fv(sp->u("ks"), 1, glm::value_ptr(ks));
 
     glfwSwapBuffers(window);  // Zmiana bufora - wyswietlanie nowej sceny
 }
