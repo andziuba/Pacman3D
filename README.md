@@ -1,7 +1,7 @@
 # Pacman3D
 Trójwymiarowa wersja klasycznej gry Pacman, stworzona przy użyciu OpenGL. Projekt zaliczeniowy na przedmiot Grafika komputerowa i wizualizacja.
 
-![](https://github.com/andziuba/Pacman3D/blob/main/Pacman3D.gif)
+![](https://github.com/andziuba/Pacman3D/blob/main/resources/Pacman3D.gif)
 
 ## Sterowanie
 * poruszanie kamerą – klawisze strzałek
