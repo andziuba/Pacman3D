@@ -337,7 +337,7 @@ void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, 
     }
 }
 
-void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices) {
+void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices, bool& gameStarted, bool& gameOver) {
     static Direction currentDirectionRed = getRandomDirection();
     static Direction currentDirectionBlue = getRandomDirection();
     static Direction currentDirectionPink = getRandomDirection();
@@ -376,6 +376,8 @@ void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertice
     }
     else {
         updateGhostPosition(ghostPositionOrange, currentDirectionOrange, mazeVertices, deltaTime);
-
+    }
+    if (checkPacmanGhostCollision()) {
+        resetGame(gameStarted, gameOver);
     }
 }

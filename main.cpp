@@ -261,7 +261,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, float deltaTime
     // Zmiana pozycji Pacmana i duszkow, jeśli gra jest rozpoczeta i nie zakonczona
     if (gameStarted && !gameOver) {
         updatePacmanPosition(deltaTime, mazeVertices, gameStarted, gameOver);
-        updateGhostPositions(deltaTime, mazeVertices);
+        updateGhostPositions(deltaTime, mazeVertices, gameStarted, gameOver);
     }
 
     // Rotacja Pacmana

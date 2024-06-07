@@ -54,6 +54,6 @@ glm::vec3 getDirectionVector(Direction direction);
 void updateGhostTransition(glm::vec3& ghostPosition, glm::vec3 targetPosition, float deltaTime);
 bool isInRestrictedZone(const glm::vec3& position);
 void updateGhostPosition(glm::vec3& ghostPosition, Direction& currentDirection, const std::vector<float>& mazeVertices, float deltaTime);
-void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices);
+void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertices, bool& gameStarted, bool& gameOver);
 
 #endif
