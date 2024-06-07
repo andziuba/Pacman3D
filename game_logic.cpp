@@ -376,5 +376,6 @@ void updateGhostPositions(float deltaTime, const std::vector<float>& mazeVertice
     }
     else {
         updateGhostPosition(ghostPositionOrange, currentDirectionOrange, mazeVertices, deltaTime);
+
     }
 }
